@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.1.0
 Date: 2026-06-04
-  - Initial release.
+  - Initial scaffold and design notes.
+  - GPLv3; mechanics and content will be adapted from Castra Prime (fork of Planet Castra by Bartz24 and LogicDolphin, maintained by erronius/pauldennis2).
+
+Attribution and references:
+  - Castra Prime https://github.com/pauldennis2/castra-prime (GPL-3.0)
+  - Nullius https://github.com/GregorSamsanite/nullius (MIT)

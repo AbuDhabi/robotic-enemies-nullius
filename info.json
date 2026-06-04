@@ -5,5 +5,6 @@
   "author": "AbuDhabi",
   "factorio_version": "2.0",
   "dependencies": ["base >= 2.0", "nullius >= 2.0.0"],
-  "description": "Adds robotic enemies to Nullius."
+  "description": "Robotic enemy bases on Nauvis for Nullius, adapted from Castra Prime. Restores combat tools via the Nullius tech tree.",
+  "homepage": "https://github.com/GregorSamsanite/nullius"
 }

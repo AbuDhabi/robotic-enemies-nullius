@@ -1,0 +1,2 @@
+-- Castra-style "data" pollutant drives collector productivity; port from castra-prime/prototypes/pollution.lua
+-- when enemy entities are added.
