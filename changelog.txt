@@ -1,8 +1,19 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.1
+Date: 2026-06-04
+  - Bundle fusion-reactor graphics in-mod; no castra-prime-assets dependency.
+  - Fix ren-data-collector using incorrect biter spawner sprites.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2026-06-04
+  - Robotic enemy bases on Nauvis (Castra Prime mechanics, GPL-3.0).
+
+---------------------------------------------------------------------------------------------------
 Version: 0.1.0
 Date: 2026-06-04
-  - Initial scaffold and design notes.
-  - GPLv3; mechanics and content will be adapted from Castra Prime (fork of Planet Castra by Bartz24 and LogicDolphin, maintained by erronius/pauldennis2).
+  - Initial mod scaffold.
+  - GPLv3; mechanics adapted from Castra Prime (fork of Planet Castra by Bartz24 and LogicDolphin, maintained by erronius/pauldennis2).
 
 Attribution and references:
   - Castra Prime https://github.com/pauldennis2/castra-prime (GPL-3.0)

@@ -1,0 +1,3 @@
+Sprites in this folder are from Castra Prime Assets (castra-prime-assets),
+originally from Planet Castra / Castra Prime (GPL-3.0).
+Bundled in Nullius Enemies so the mod does not depend on the separate assets mod.

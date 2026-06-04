@@ -1,11 +1,232 @@
--- Castra Prime spawns enemy bases on surface "castra" in on_chunk_generated.
--- This mod will use surface "nauvis" instead (Nullius has no separate enemy planet).
+-- Adapted from Castra Prime (GPL-3.0). Robotic bases on Nauvis for Nullius.
 
--- local base_gen = require("scripts.base-generator")
+local enemy_cache = require("scripts.enemy-cache")
+local base_generator = require("scripts.base-generator")
+local ren = require("scripts.constants")
 
--- script.on_event(defines.events.on_chunk_generated, function(event)
---   if event.surface.name ~= "nauvis" then
---     return
---   end
---   -- TODO: port base-generator.create_enemy_base from Castra Prime
--- end)
+local function enemies_enabled()
+  return settings.startup["ren-enable-robotic-enemies"].value
+end
+
+local function track_collector(entity)
+  if not entity.valid or entity.name ~= ren.SPAWNER or entity.force.name ~= "enemy" then
+    return
+  end
+  storage.ren = storage.ren or {}
+  storage.ren.dataCollectors = storage.ren.dataCollectors or {}
+  table.insert(storage.ren.dataCollectors, entity)
+end
+
+local function untrack_collector(entity)
+  if not entity or entity.name ~= ren.SPAWNER then
+    return
+  end
+  storage.ren = storage.ren or {}
+  if not storage.ren.dataCollectors then
+    return
+  end
+  for i = #storage.ren.dataCollectors, 1, -1 do
+    if storage.ren.dataCollectors[i] == entity or not storage.ren.dataCollectors[i].valid then
+      table.remove(storage.ren.dataCollectors, i)
+    end
+  end
+  if entity.unit_number and storage.ren.dataCollectorsPollution then
+    storage.ren.dataCollectorsPollution[entity.unit_number] = nil
+  end
+end
+
+local function on_collector_unit_spawned(event)
+  if event.entity and event.entity.valid then
+    event.entity.destroy()
+  end
+end
+
+local function find_nearby_collector(position, range)
+  for _, collector in pairs(storage.ren.dataCollectors or {}) do
+    if collector.valid then
+      local dx = collector.position.x - position.x
+      local dy = collector.position.y - position.y
+      if dx * dx + dy * dy < range * range then
+        return collector
+      end
+    end
+  end
+end
+
+local function give_tank_random_command(tank, selection)
+  if not tank.valid then
+    return
+  end
+  local rand = selection or math.random()
+  if rand < 0.80 then
+    tank.commandable.set_command {
+      type = defines.command.wander,
+      distraction = defines.distraction.by_anything,
+      ticks_to_wait = math.random(600, 5000),
+    }
+    return
+  elseif rand < 0.85 then
+    if not find_nearby_collector(tank.position, 32) then
+      local area = {
+        left_top = { x = tank.position.x - 15, y = tank.position.y - 15 },
+        right_bottom = { x = tank.position.x + 15, y = tank.position.y + 15 },
+      }
+      base_generator.create_enemy_base(area)
+    end
+    tank.commandable.set_command {
+      type = defines.command.wander,
+      distraction = defines.distraction.by_anything,
+      ticks_to_wait = math.random(600, 5000),
+    }
+    return
+  elseif rand < 0.95 then
+    local collectors = storage.ren.dataCollectors or {}
+    if #collectors > 0 then
+      local target = collectors[math.random(1, #collectors)]
+      if target.valid then
+        tank.commandable.set_command {
+          type = defines.command.go_to_location,
+          destination = target.position,
+          distraction = defines.distraction.by_anything,
+        }
+        return
+      end
+    end
+  elseif rand < 0.99 then
+    local entities = tank.surface.find_entities_filtered {
+      force = "player",
+      area = { { tank.position.x - 100, tank.position.y - 100 }, { tank.position.x + 100, tank.position.y + 100 } },
+    }
+    for _, entity in pairs(entities) do
+      if entity.valid and entity.is_military_target then
+        tank.commandable.set_command {
+          type = defines.command.attack_area,
+          destination = entity.position,
+          radius = 8,
+          distraction = defines.distraction.by_anything,
+        }
+        return
+      end
+    end
+  else
+    local closest = tank.surface.find_nearest_enemy { position = tank.position, force = tank.force, max_distance = 500 }
+    if closest then
+      tank.commandable.set_command {
+        type = defines.command.attack_area,
+        destination = closest.position,
+        radius = 8,
+        distraction = defines.distraction.by_anything,
+      }
+      return
+    end
+  end
+  tank.commandable.set_command {
+    type = defines.command.wander,
+    distraction = defines.distraction.by_anything,
+    ticks_to_wait = math.random(600, 5000),
+  }
+end
+
+script.on_init(function()
+  storage.ren = storage.ren or {}
+  storage.ren.dataCollectors = storage.ren.dataCollectors or {}
+  enemy_cache.build_cache_if_needed()
+end)
+
+script.on_configuration_changed(function()
+  storage.ren = storage.ren or {}
+  storage.ren.dataCollectors = storage.ren.dataCollectors or {}
+  enemy_cache.build_cache_if_needed()
+end)
+
+script.on_event(defines.events.on_chunk_generated, function(event)
+  if not enemies_enabled() then
+    return
+  end
+  if not ren.on_nauvis(event.surface) then
+    return
+  end
+  enemy_cache.build_cache_if_needed()
+
+  local resources = event.surface.find_entities_filtered { type = "resource", area = event.area }
+  local distance = math.sqrt(event.area.left_top.x ^ 2 + event.area.left_top.y ^ 2)
+  if (#resources > 0 or math.random() < 0.04 * math.log(math.max(distance, 40) / 40, 5)) and distance > 200 then
+    base_generator.create_enemy_base(event.area)
+  end
+end)
+
+script.on_event(defines.events.on_entity_spawned, function(event)
+  if string.find(event.entity.name, "^ren%-data%-collector%-") then
+    on_collector_unit_spawned(event)
+    return
+  end
+  if event.entity.name == ren.TANK and event.spawner and event.spawner.name == ren.SPAWNER then
+    enemy_cache.build_cache_if_needed()
+    if not storage.ren.enemy.tank then
+      event.entity.destroy()
+      return
+    end
+    give_tank_random_command(event.entity, nil)
+  end
+end)
+
+local function built_event(event)
+  if not event.entity or not event.entity.valid then
+    return
+  end
+  if ren.on_nauvis(event.entity.surface) then
+    track_collector(event.entity)
+  end
+end
+
+local function destroyed_event(event)
+  if not event.entity then
+    return
+  end
+  if ren.on_nauvis(event.entity.surface) then
+    untrack_collector(event.entity)
+  end
+end
+
+script.on_event(defines.events.on_built_entity, built_event)
+script.on_event(defines.events.on_robot_built_entity, built_event)
+script.on_event(defines.events.script_raised_built, built_event)
+script.on_event(defines.events.script_raised_revive, built_event)
+script.on_event(defines.events.on_entity_died, destroyed_event)
+script.on_event(defines.events.on_player_mined_entity, destroyed_event)
+script.on_event(defines.events.on_robot_mined_entity, destroyed_event)
+script.on_event(defines.events.script_raised_destroy, destroyed_event)
+
+script.on_event(defines.events.on_tick, function(event)
+  if not enemies_enabled() or not enemy_cache.nauvis_exists() then
+    return
+  end
+
+  if event.tick % 2000 == 1277 then
+    storage.ren = storage.ren or {}
+    storage.ren.dataCollectors = storage.ren.dataCollectors or {}
+    for i = #storage.ren.dataCollectors, 1, -1 do
+      if not storage.ren.dataCollectors[i].valid then
+        table.remove(storage.ren.dataCollectors, i)
+      end
+    end
+    if #storage.ren.dataCollectors == 0 then
+      return
+    end
+    local surface = game.surfaces[ren.SURFACE]
+    local collector = storage.ren.dataCollectors[math.random(1, #storage.ren.dataCollectors)]
+    local tanks = surface.find_entities_filtered {
+      name = ren.TANK,
+      area = {
+        { collector.position.x - 100, collector.position.y - 100 },
+        { collector.position.x + 100, collector.position.y + 100 },
+      },
+    }
+    for _, tank in pairs(tanks) do
+      if tank.valid and tank.commandable and tank.commandable.command
+          and tank.commandable.command.type == defines.command.wander then
+        give_tank_random_command(tank, math.random() < 0.5 and 0.97 or (math.random() < 0.5 and 1 or nil))
+      end
+    end
+  end
+end)

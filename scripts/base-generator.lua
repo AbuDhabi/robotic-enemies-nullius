@@ -1,0 +1,492 @@
+-- Handles spawning of new enemy bases and placement of individual base components on Castra.
+--
+-- Entry point: create_enemy_base(chunk_area), called from control.lua on_chunk_generated.
+-- Orchestrates a full base spawn: data collector, turrets, solar/roboport/power poles,
+-- walls (50% chance), and land mines (40% chance).
+--
+-- Individual placement functions (place_turrets, place_solar, place_roboport, etc.) are also
+-- called directly by base-upgrades.lua to incrementally upgrade existing bases.
+
+local enemy_cache = require("scripts.enemy-cache")
+local config = require("scripts.config")
+local geom = require("scripts.wall-geometry")
+
+local createPoint         = geom.createPoint
+local negateYCoordinates  = geom.negateYCoordinates
+local restoreYCoordinates = geom.restoreYCoordinates
+local grahamScan          = geom.grahamScan
+local expandConvexHull    = geom.expandConvexHull
+local plotLine            = geom.plotLine
+
+local function select_random_quality_max(max_quality_in)
+    enemy_cache.build_cache_if_needed()
+    local qualities = {}
+    local max_quality = max_quality_in or storage.ren.enemy.quality_tier
+
+    -- Add any qualities from the table that are lower thanl the max quality
+    for _, quality in pairs(prototypes.quality) do
+        if quality and not quality.hidden and quality.level <= max_quality.level then
+            table.insert(qualities, quality)
+        end
+    end
+
+    if #qualities == 0 or storage.ren.enemy.quality_module_tier == 0 then
+        return prototypes.quality["normal"]
+    end
+
+    -- Assign a weight to each quality based on the level and the current quality module tier
+    local total_weight = 0
+    local weights = {}
+    local base = 0.1 * math.sqrt(storage.ren.enemy.quality_module_tier * math.sqrt(max_quality.level))
+    for _, quality in pairs(qualities) do
+        local weight = math.ceil(math.pow(base, quality.level) * 1000)
+        total_weight = total_weight + weight
+        table.insert(weights, weight)
+    end
+
+    -- Select a random quality based on the weights
+    local random_weight = math.random() * total_weight
+    local sum = 0
+    for i, weight in pairs(weights) do
+        sum = sum + weight
+        if sum >= random_weight then
+            return qualities[i]
+        end
+    end
+
+    return prototypes.quality["normal"]
+end
+
+local function select_random_quality()
+    return select_random_quality_max(nil)
+end
+
+local function build_enemy_wall(chunk_area, pos)
+    enemy_cache.build_cache_if_needed()
+    local wall_type = storage.ren.enemy.wall_tier or nil
+    if not wall_type then
+        return
+    end
+
+    -- Find and enemy force entities in a 15x15 range
+    local surface = game.surfaces["nauvis"]
+    local enemy_force = game.forces["enemy"]
+    local entities = surface.find_entities_filtered { force = enemy_force, area = { { chunk_area.left_top.x - 15, chunk_area.left_top.y - 15 }, { chunk_area.right_bottom.x + 15, chunk_area.right_bottom.y + 15 } } }
+    -- Remove walls from entities list
+    for i = #entities, 1, -1 do
+        if not entities[i].valid or entities[i].type == "wall" then
+            table.remove(entities, i)
+        end
+    end
+
+    -- Create points to use for the convex hull. Each entity of size n x m needs to be represented by the 4 corners
+    local points = {}
+    for _, entity in pairs(entities) do
+        local x = entity.position.x
+        local y = entity.position.y
+        local width = entity.prototype.selection_box.right_bottom.x - entity.prototype.selection_box.left_top.x
+        local height = entity.prototype.selection_box.right_bottom.y - entity.prototype.selection_box.left_top.y
+        table.insert(points, createPoint(x - width / 2, y - height / 2))
+        table.insert(points, createPoint(x + width / 2, y - height / 2))
+        table.insert(points, createPoint(x + width / 2, y + height / 2))
+        table.insert(points, createPoint(x - width / 2, y + height / 2))
+    end
+
+    -- Create the orthogonalized convex hull
+
+    local transformedPoints = negateYCoordinates(points)
+    local convexHull = grahamScan(transformedPoints)
+    local restoredHull = restoreYCoordinates(convexHull)
+    local expandedHull = expandConvexHull(restoredHull, 2)
+
+    local quality = select_random_quality()
+
+    -- Create the walls along the expanded hull
+    local emptyWallSpots = 0
+    for i = 1, #expandedHull do
+        local p1 = expandedHull[i]
+        local p2 = expandedHull[(i % #expandedHull) + 1]
+        local wallPoints = plotLine(p1.x, p1.y, p2.x, p2.y)
+        for _, point in pairs(wallPoints) do
+            -- Randomly set some wall spots to be empty
+            if math.random() < 0.1 then
+                emptyWallSpots = emptyWallSpots + 3
+            end
+            if emptyWallSpots > 0 then
+                emptyWallSpots = emptyWallSpots - 1
+            else
+                if surface.can_place_entity { name = wall_type, position = point, force = enemy_force } then
+                    surface.create_entity { name = wall_type, position = point, force = enemy_force, quality = quality, raise_built = true }
+                end
+            end
+        end
+    end
+
+    -- This is laggy, so we'll skip it for now
+    -- Fill the area inside the convex hull with concrete
+    --local concreteHull = expandConvexHull(restoredHull, 2)
+    --floodFill(concreteHull, pos.x, pos.y)
+end
+
+local function place_roboport(chunk_area, data_collector_pos)
+    if not storage.ren.enemy.roboport then
+        return
+    end
+
+    local surface = game.surfaces["nauvis"]
+    local enemy_force = game.forces["enemy"]
+    local otherRoboports = surface.find_entities_filtered { type = "roboport", force = enemy_force, area = { { chunk_area.left_top.x - 45, chunk_area.left_top.y - 45 }, { chunk_area.right_bottom.x + 45, chunk_area.right_bottom.y + 45 } } }
+
+    -- Create a roboport if there is another roboport nearby or a 50% chance
+    if #otherRoboports > 0 or math.random() < 0.8 then
+        local pos = surface.find_non_colliding_position("ren-enemy-roboport", data_collector_pos, 16, 0.5, true)
+        if pos then
+            local roboport = surface.create_entity { name = "ren-enemy-roboport", position = pos, force = enemy_force, quality = select_random_quality(), raise_built = true }
+
+            -- Add a few construction bots and repair packs to the roboport
+            if roboport then
+                if storage.ren.enemy.construction_robots then
+                    roboport.insert { name = "construction-robot", count = 25, quality = select_random_quality() }
+                end
+                if storage.ren.enemy.repair_pack then
+                    roboport.insert { name = "repair-pack", count = 100, quality = select_random_quality() }
+                end
+            end
+
+            return roboport
+        end
+    end
+
+    return nil
+end
+
+local function place_solar(chunk_area)
+    enemy_cache.build_cache_if_needed()
+
+    if not storage.ren.enemy.solar_panel then
+        return
+    end
+
+    local surface = game.surfaces["nauvis"]
+    local enemy_force = game.forces["enemy"]
+
+    -- Place a power pole and up to 5 solar panels around it if it's in the pole's range
+    local power_type = storage.ren.enemy.best_power_pole
+    if not power_type then
+        return
+    end
+    local enemy_power_type = "ren-enemy-" .. power_type
+
+    local pole_pos = surface.find_non_colliding_position(enemy_power_type,
+        { math.random(chunk_area.left_top.x, chunk_area.right_bottom.x), math.random(chunk_area.left_top.y,
+            chunk_area.right_bottom.y) }, 8, 0.5, true)
+
+    if pole_pos then
+        local power_pole = surface.create_entity { name = enemy_power_type, position = pole_pos, force = enemy_force, quality = select_random_quality(), raise_built = true }
+
+        if not power_pole then
+            return
+        end
+
+        local pole_range = power_pole.prototype.get_supply_area_distance(power_pole.quality)
+
+        local quality = select_random_quality()
+
+        local created = false
+        for i = 1, math.random(2, 5) do
+            local solar_panel_pos = surface.find_non_colliding_position("ren-enemy-solar-panel",
+                { pole_pos.x + math.random(-pole_range - 2, pole_range + 2), pole_pos.y +
+                math.random(-pole_range - 2, pole_range + 2) }, 8, 0.5, true)
+            if solar_panel_pos then
+                local solar = surface.create_entity { name = "ren-enemy-solar-panel", position = solar_panel_pos, force = enemy_force, quality = quality, raise_built = true }
+                if solar then
+                    created = true
+
+                    -- If the solar panel isn't connected to a power network, try to add a power pole
+                    if not solar.is_connected_to_electric_network() then
+                        local power_pole_pos = surface.find_non_colliding_position(enemy_power_type, solar.position, pole_range + 2, 0.5, true)
+                        if power_pole_pos then
+                            surface.create_entity { name = enemy_power_type, position = power_pole_pos, force = enemy_force, quality = quality, raise_built = true }
+                        end
+                    end
+                end
+            end
+        end
+
+        if not created then
+            power_pole.destroy()
+        else
+            return power_pole
+        end
+    end
+
+    return nil
+end
+
+local function find_closest_entity(filters, reference_pos)
+    local entities = game.surfaces["nauvis"].find_entities_filtered(filters)
+    local closest_entity = nil
+    local closest_distance = math.huge
+    local ref = reference_pos or { x = 0, y = 0 }
+
+    for _, entity in pairs(entities) do
+        if not entity.valid then goto continue_entity end
+        local distance = (entity.position.x - ref.x) ^ 2 + (entity.position.y - ref.y) ^ 2
+        if distance < closest_distance then
+            closest_entity = entity
+            closest_distance = distance
+        end
+        ::continue_entity::
+    end
+
+    return closest_entity
+end
+
+-- For each unpowered entity, places a pole nearby then draws a line of poles toward the
+-- nearest solar panel to bridge the gap to the power network.
+local function place_power_poles(chunk_area, powered_entities)
+    enemy_cache.build_cache_if_needed()
+    if not powered_entities or #powered_entities == 0 or not storage.ren.enemy.solar_panel then
+        return
+    end
+
+    local power_type = storage.ren.enemy.best_power_pole
+    if not power_type then
+        return
+    end
+    local enemy_power_type = "ren-enemy-" .. power_type
+
+    local quality = select_random_quality()
+
+    local pole_supply_area = prototypes.entity[enemy_power_type].get_supply_area_distance(quality)
+
+    local surface = game.surfaces["nauvis"]
+    local enemy_force = game.forces["enemy"]
+
+    -- Place power poles to connect the power source to the powered entities
+    -- Find a non-colliding position for the power pole, and if it closes the distance to the next entity, place it
+    for _, entity in pairs(powered_entities) do
+        if not entity.valid or entity.is_connected_to_electric_network() then
+            goto continue_pole
+        end
+
+        local power_pole_pos = surface.find_non_colliding_position(enemy_power_type, entity.position, pole_supply_area + 2, 0.5, true)
+        if not power_pole_pos then
+            goto continue_pole
+        end
+        surface.create_entity { name = enemy_power_type, position = power_pole_pos, force = enemy_force, quality = quality, raise_built = true }
+
+        -- Check if it's now connected to power
+        if entity.is_connected_to_electric_network() then
+            goto continue_pole
+        end
+
+        local pole_reach = prototypes.entity[enemy_power_type].get_max_wire_distance(quality)
+        
+        -- Find where the solar panels are and add power poles to connect them
+        local solar_panel = find_closest_entity({ area = { top_left = { entity.position.x - 50, entity.position.y - 50 }, bottom_right = { entity.position.x + 50, entity.position.y + 50 } }, type = "solar-panel" }, power_pole_pos)
+        if solar_panel then
+            -- Draw a line of poles based on the pole's max distance
+            local pole_distance = math.floor(math.sqrt((power_pole_pos.x - solar_panel.position.x) ^ 2 + (power_pole_pos.y - solar_panel.position.y) ^ 2))
+            local pole_count = math.floor(pole_distance / pole_reach)
+            -- need to round down
+            local pole_step = { x = math.floor((solar_panel.position.x - power_pole_pos.x) / pole_count), y = math.floor((solar_panel.position.y - power_pole_pos.y) / pole_count) }
+            
+
+            for i = 1, pole_count do
+                local pole_pos_test = { x = power_pole_pos.x + pole_step.x * i, y = power_pole_pos.y + pole_step.y * i }
+                local pole_pos = surface.find_non_colliding_position(enemy_power_type, pole_pos_test, 3, 0.5, true)
+                if pole_pos then
+                    surface.create_entity { name = enemy_power_type, position = pole_pos, force = enemy_force, quality = quality, raise_built = true }
+                end
+            end
+        end
+
+        ::continue_pole::
+    end
+end
+
+local function get_corresponding_ammo(turret_type)
+    enemy_cache.build_cache_if_needed()
+    if turret_type == "gun-turret" then
+        return storage.ren.enemy.ammo_tier
+    elseif turret_type == "laser-turret" then
+        return "N_A"
+    elseif turret_type == "flamethrower-turret" then
+        return "flamethrower-ammo"
+    end
+end
+
+local hyphen_to_underscore = config.hyphen_to_underscore
+
+local function get_enemy_variant(name)
+    if name == "flamethrower-turret" then
+        return "ren-enemy-flamethrower-turret"
+    elseif name == "railgun-turret" then
+        return "ren-enemy-railgun-turret"
+    elseif name == "tesla-turret" then
+        return "ren-enemy-tesla-turret"
+    elseif name == "laser-turret" then
+        return "ren-enemy-laser-turret"
+    else
+        return name
+    end
+end
+
+local function place_turrets(data_collector_pos, type)
+    local turret_types = nil
+    if not type then
+        -- Select a random turret type from the available turrets
+        turret_types = { table.unpack(config.TURRET_TYPES) }
+    else
+        turret_types = { type }
+    end
+    -- Remove any turrets that are not researched
+    for i = #turret_types, 1, -1 do
+        if not storage.ren.enemy[hyphen_to_underscore(turret_types[i])] or not get_corresponding_ammo(turret_types[i]) then
+            table.remove(turret_types, i)
+        -- Remove power-based turrets if solar panels are not researched
+        elseif not storage.ren.enemy.solar_panel and (turret_types[i] == "laser-turret" or turret_types[i] == "railgun-turret" or turret_types[i] == "tesla-turret") then
+            table.remove(turret_types, i)
+        end
+    end
+
+    if #turret_types == 0 then
+        return
+    end
+
+    local powered_turrets = {}
+
+    -- Select a random turret type
+    local turret_type = turret_types[math.random(1, #turret_types)]
+
+    -- Railgun has 8 orientations
+    local railgun_orients = { defines.direction.east, defines.direction.northeast, defines.direction.north, defines.direction.northwest,
+        defines.direction.west, defines.direction.southwest, defines.direction.south, defines.direction.southeast }
+
+    -- Flamethrower has 4 orientations
+    local flamethrower_orients = { defines.direction.east, defines.direction.north, defines.direction.west, defines.direction.south }
+
+    -- Place a random number of turrets around the data-collector
+    for i = 1, math.random(1, 6) do
+        local turret_pos = game.surfaces["nauvis"].find_non_colliding_position(get_enemy_variant(turret_type),
+            { data_collector_pos.x + math.random(-8, 8), data_collector_pos.y + math.random(-8, 8) }, 8, 0.5, true)
+        if turret_pos then
+            local orientation = nil
+            if turret_type == "railgun-turret" then
+                orientation = railgun_orients[math.random(1, #railgun_orients)]
+            elseif turret_type == "flamethrower-turret" then
+                orientation = flamethrower_orients[math.random(1, #flamethrower_orients)]
+            end
+
+            local turret = game.surfaces["nauvis"].create_entity { name = get_enemy_variant(turret_type), position = turret_pos, force = game.forces["enemy"], direction = orientation, quality = select_random_quality(), raise_built = true }
+            if turret then
+                if turret_type == "railgun-turret" or turret_type == "tesla-turret" or turret_type == "laser-turret" then
+                    table.insert(powered_turrets, turret)
+                end
+
+                -- Add ammo to the turret
+                local ammo = get_corresponding_ammo(turret_type)
+                if ammo and ammo ~= "N_A" then
+                    local count = prototypes.item[ammo].stack_size
+                    if turret_type == "artillery-turret" then
+                        count = 20
+                    end
+                    turret.insert { name = ammo, count = count, quality = select_random_quality() }
+                end
+
+                -- Add light oil if it's a flamethrower turret
+                if turret_type == "flamethrower-turret" then
+                    turret.insert_fluid { name = "light-oil", amount = 1000 }
+                end
+            end
+        end
+    end
+
+    return powered_turrets
+end
+
+local function place_land_mines(data_collector_pos)
+    enemy_cache.build_cache_if_needed()
+    if not storage.ren.enemy.land_mine then
+        return
+    end
+
+    local surface = game.surfaces["nauvis"]
+    local enemy_force = game.forces["enemy"]
+
+    -- Place a ~20 land mines around the data collector within a range of 20
+    for i = 1, math.random(10, 30) do
+        local land_mine_pos = surface.find_non_colliding_position("land-mine",
+            { data_collector_pos.x + math.random(-20, 20), data_collector_pos.y + math.random(-20, 20) }, 8, 0.5, true)
+        if land_mine_pos then
+            surface.create_entity { name = "land-mine", position = land_mine_pos, force = enemy_force, quality = select_random_quality(), raise_built = true }
+        end
+    end
+end
+
+local function create_enemy_base(chunk_area)
+    enemy_cache.build_cache_if_needed()
+
+    -- Check if there are any enemy force roboports in 45x45 range
+    local surface = game.surfaces["nauvis"]
+    local enemy_force = game.forces["enemy"]
+
+
+    -- Find a random valid position in the chunk
+    local dataPos = surface.find_non_colliding_position("ren-data-collector",
+        { math.random(chunk_area.left_top.x, chunk_area.right_bottom.x), math.random(chunk_area.left_top.y,
+            chunk_area.right_bottom.y) }, 16, 0.5, true)
+    if not dataPos then
+        return
+    end
+
+    -- Place the data collector
+    surface.create_entity { name = "ren-data-collector", position = dataPos, force = enemy_force, quality = select_random_quality(), raise_built = true }
+    local powered_entities = {}
+
+    -- Place turrets
+    if math.random() < 0.95 then
+        local powered_turrets = place_turrets(dataPos, nil)
+        if powered_turrets then
+            for _, turret in pairs(powered_turrets) do
+                table.insert(powered_entities, turret)
+            end
+        end
+    end
+
+    -- Place power based on if solar panels are available
+    if storage.ren.enemy.solar_panel then
+        local power_source = place_solar(chunk_area)
+
+        if power_source then
+            local roboport = place_roboport(chunk_area, dataPos)
+            if roboport then
+                table.insert(powered_entities, roboport)
+            end
+            place_power_poles(chunk_area, powered_entities)
+        end
+    end
+
+    if math.random() < 0.5 then
+        build_enemy_wall(chunk_area, dataPos)
+    end
+
+    if math.random() < 0.4 then
+        place_land_mines(dataPos)
+    end
+end
+
+return {
+    create_enemy_base = create_enemy_base,
+    build_enemy_wall = build_enemy_wall,
+    place_turrets = place_turrets,
+    place_land_mines = place_land_mines,
+    place_solar = place_solar,
+    place_roboport = place_roboport,
+    place_power_poles = place_power_poles,
+    get_corresponding_ammo = get_corresponding_ammo,
+    select_random_quality = select_random_quality,
+    get_enemy_variant = get_enemy_variant,
+    select_random_quality_max = select_random_quality_max,
+}
