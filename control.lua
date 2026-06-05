@@ -41,12 +41,6 @@ local function untrack_collector(entity)
   end
 end
 
-local function on_collector_unit_spawned(event)
-  if event.entity and event.entity.valid then
-    event.entity.destroy()
-  end
-end
-
 local function find_nearby_collector(position, range)
   for _, collector in pairs(storage.ren.dataCollectors or {}) do
     if collector.valid then
@@ -59,27 +53,27 @@ local function find_nearby_collector(position, range)
   end
 end
 
-local function give_tank_random_command(tank, selection)
-  if not tank.valid then
+local function give_vehicle_unit_command(unit, selection)
+  if not unit.valid then
     return
   end
   local rand = selection or math.random()
   if rand < 0.80 then
-    tank.commandable.set_command {
+    unit.commandable.set_command {
       type = defines.command.wander,
       distraction = defines.distraction.by_anything,
       ticks_to_wait = math.random(600, 5000),
     }
     return
   elseif rand < 0.85 then
-    if not find_nearby_collector(tank.position, 32) then
+    if not find_nearby_collector(unit.position, 32) then
       local area = {
-        left_top = { x = tank.position.x - 15, y = tank.position.y - 15 },
-        right_bottom = { x = tank.position.x + 15, y = tank.position.y + 15 },
+        left_top = { x = unit.position.x - 15, y = unit.position.y - 15 },
+        right_bottom = { x = unit.position.x + 15, y = unit.position.y + 15 },
       }
       base_generator.create_enemy_base(area)
     end
-    tank.commandable.set_command {
+    unit.commandable.set_command {
       type = defines.command.wander,
       distraction = defines.distraction.by_anything,
       ticks_to_wait = math.random(600, 5000),
@@ -90,7 +84,7 @@ local function give_tank_random_command(tank, selection)
     if #collectors > 0 then
       local target = collectors[math.random(1, #collectors)]
       if target.valid then
-        tank.commandable.set_command {
+        unit.commandable.set_command {
           type = defines.command.go_to_location,
           destination = target.position,
           distraction = defines.distraction.by_anything,
@@ -99,13 +93,13 @@ local function give_tank_random_command(tank, selection)
       end
     end
   elseif rand < 0.99 then
-    local entities = tank.surface.find_entities_filtered {
+    local entities = unit.surface.find_entities_filtered {
       force = "player",
-      area = { { tank.position.x - 100, tank.position.y - 100 }, { tank.position.x + 100, tank.position.y + 100 } },
+      area = { { unit.position.x - 100, unit.position.y - 100 }, { unit.position.x + 100, unit.position.y + 100 } },
     }
     for _, entity in pairs(entities) do
       if entity.valid and entity.is_military_target then
-        tank.commandable.set_command {
+        unit.commandable.set_command {
           type = defines.command.attack_area,
           destination = entity.position,
           radius = 8,
@@ -115,9 +109,9 @@ local function give_tank_random_command(tank, selection)
       end
     end
   else
-    local closest = tank.surface.find_nearest_enemy { position = tank.position, force = tank.force, max_distance = 500 }
+    local closest = unit.surface.find_nearest_enemy { position = unit.position, force = unit.force, max_distance = 500 }
     if closest then
-      tank.commandable.set_command {
+      unit.commandable.set_command {
         type = defines.command.attack_area,
         destination = closest.position,
         radius = 8,
@@ -126,7 +120,7 @@ local function give_tank_random_command(tank, selection)
       return
     end
   end
-  tank.commandable.set_command {
+  unit.commandable.set_command {
     type = defines.command.wander,
     distraction = defines.distraction.by_anything,
     ticks_to_wait = math.random(600, 5000),
@@ -164,18 +158,21 @@ script.on_event(defines.events.on_chunk_generated, function(event)
 end)
 
 script.on_event(defines.events.on_entity_spawned, function(event)
-  if string.find(event.entity.name, "^ren%-data%-collector%-") then
-    on_collector_unit_spawned(event)
+  local unlock_evolution = ren.EVOLUTION_UNLOCK[event.entity.name]
+  if not unlock_evolution then
     return
   end
-  if event.entity.name == ren.TANK and event.spawner and event.spawner.name == ren.SPAWNER then
-    enemy_cache.build_cache_if_needed()
-    if not storage.ren.enemy.tank then
-      event.entity.destroy()
-      return
-    end
-    give_tank_random_command(event.entity, nil)
+  if not event.spawner or event.spawner.name ~= ren.SPAWNER then
+    return
   end
+
+  enemy_cache.build_cache_if_needed()
+  local evolution = game.forces.enemy.get_evolution_factor(event.entity.surface)
+  if evolution < unlock_evolution then
+    event.entity.destroy()
+    return
+  end
+  give_vehicle_unit_command(event.entity, nil)
 end)
 
 local function built_event(event)
@@ -223,17 +220,17 @@ script.on_event(defines.events.on_tick, function(event)
     end
     local surface = game.surfaces[ren.SURFACE]
     local collector = storage.ren.dataCollectors[math.random(1, #storage.ren.dataCollectors)]
-    local tanks = surface.find_entities_filtered {
-      name = ren.TANK,
+    local units = surface.find_entities_filtered {
+      name = ren.VEHICLE_UNITS,
       area = {
         { collector.position.x - 100, collector.position.y - 100 },
         { collector.position.x + 100, collector.position.y + 100 },
       },
     }
-    for _, tank in pairs(tanks) do
-      if tank.valid and tank.commandable and tank.commandable.command
-          and tank.commandable.command.type == defines.command.wander then
-        give_tank_random_command(tank, math.random() < 0.5 and 0.97 or (math.random() < 0.5 and 1 or nil))
+    for _, unit in pairs(units) do
+      if unit.valid and unit.commandable and unit.commandable.command
+          and unit.commandable.command.type == defines.command.wander then
+        give_vehicle_unit_command(unit, math.random() < 0.5 and 0.97 or (math.random() < 0.5 and 1 or nil))
       end
     end
   end

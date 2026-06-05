@@ -6,81 +6,41 @@ local gfx = require("prototypes.graphics")
 local spawner_graphics = gfx.spawner_graphics_set()
 local spawner_icon = gfx.spawner_icon()
 
-local function create_collector_unit(item_name, icon)
-  return {
-    type = "unit",
-    name = "ren-data-collector-" .. item_name,
-    icons = {
-      {
-        icon = spawner_icon,
-        scale = 0.7,
-        shift = { 0, -10 },
-      },
-      {
-        icon = icon,
-        scale = 0.5,
-        shift = { -10, 10 },
-      },
-    },
-    loot = {
-      {
-        item = item_name,
-        probability = 1,
-        count_min = 1,
-        count_max = 1,
-      },
-    },
-    flags = { "placeable-player", "placeable-enemy", "placeable-off-grid", "not-repairable", "breaths-air" },
-    max_health = 1,
-    order = "n-a-a",
-    subgroup = "enemies",
-    resistances = {},
-    healing_per_tick = 0.01,
-    collision_box = { { -0.2, -0.2 }, { 0.2, 0.2 } },
-    selection_box = { { -0.4, -0.7 }, { 0.4, 0.4 } },
-    impact_category = "metal",
-    vision_distance = 30,
-    distance_per_frame = 0.125,
-    distraction_cooldown = 300,
-    absorptions_to_join_attack = { ["ren-data"] = 100 },
-    movement_speed = 0,
-    run_animation = {
-      layers = {
-        {
-          filename = icon,
-          priority = "high",
-          width = 64,
-          height = 64,
-          frame_count = 1,
-          direction_count = 1,
-          shift = { 0, 0 },
-          scale = 1,
-        },
-      },
-    },
-    attack_parameters = {
-      type = "projectile",
-      range = 0,
-      cooldown = 0,
-      cooldown_deviation = 0.15,
-      ammo_category = "melee",
-      ammo_type = {
-        target_type = "entity",
-        action = {
-          type = "direct",
-          action_delivery = {
-            type = "instant",
-            target_effects = {
-              type = "damage",
-              damage = { amount = 0, type = "physical" },
-            },
-          },
-        },
-      },
-      animation = biterattackanimation(small_biter_scale, small_biter_tint1, small_biter_tint2),
-      range_mode = "bounding-box-to-bounding-box",
-    },
-  }
+local enemy_tint = { r = 0, g = 0.5, b = 0.2, a = 1 }
+
+local function tint_animation(animation, tint)
+  if not animation then
+    return animation
+  end
+  local copy = table.deepcopy(animation)
+  copy.tint = tint
+  return copy
+end
+
+local function create_vehicle_enemy_unit(options)
+  local vehicle = options.vehicle
+  local unit = table.deepcopy(data.raw["unit"][options.spitter_base or "medium-spitter"])
+  unit.name = options.name
+  unit.icon = options.icon
+  unit.max_health = vehicle.max_health
+  unit.factoriopedia_simulation = nil
+  unit.resistances = options.resistances or vehicle.resistances or {}
+  unit.absorptions_to_join_attack = { [options.pollutant or "ren-data"] = options.absorption_cost }
+  unit.run_animation = tint_animation(options.animation, enemy_tint)
+  unit.working_sound = options.working_sound
+  unit.rotation_speed = options.rotation_speed
+  unit.alternative_attacking_frame_sequence = nil
+  unit.corpse = vehicle.corpse
+  unit.dying_explosion = vehicle.dying_explosion
+  unit.dying_sound = nil
+  unit.walking_sound = nil
+  unit.water_reflection = nil
+  unit.movement_speed = options.movement_speed
+  unit.collision_box = vehicle.collision_box
+  unit.selection_box = vehicle.selection_box
+  unit.attack_parameters = options.attack_parameters
+  unit.attack_parameters.animation = unit.run_animation
+  return unit
 end
 
 data:extend({
@@ -124,86 +84,139 @@ data:extend({
     max_richness_for_spawn_shift = 100,
     call_for_help_radius = 0,
     result_units = {
-      { "ren-data-collector-decider-combinator", { { 0.0, 0.15 }, { 0.6, 0.1 }, { 1.0, 0.05 } } },
-      { "ren-data-collector-nullius-motor-1", { { 0.0, 0.1 }, { 0.5, 0.1 }, { 1.0, 0.1 } } },
-      { "ren-data-collector-nullius-steel-plate", { { 0.0, 0.5 }, { 0.7, 0.2 }, { 1.0, 0.0 } } },
-      { "ren-enemy-tank", { { 0.0, 0.0 }, { 0.5, 0.0 }, { 1.0, 0.08 } } },
-    },
-    loot = {
-      { item = "decider-combinator", probability = 0.8, count_min = 1, count_max = 4 },
-      { item = "nullius-steel-plate", probability = 1, count_min = 5, count_max = 15 },
-      { item = "nullius-motor-1", probability = 0.6, count_min = 1, count_max = 3 },
+      { "ren-enemy-buggy", { { 0.0, 0.10 }, { 0.3, 0.12 }, { 0.5, 0.08 }, { 1.0, 0.05 } } },
+      { "ren-enemy-tank", { { 0.0, 0.0 }, { 0.35, 0.0 }, { 0.45, 0.08 }, { 1.0, 0.10 } } },
+      { "ren-enemy-spider", { { 0.0, 0.0 }, { 0.65, 0.0 }, { 0.75, 0.05 }, { 1.0, 0.08 } } },
     },
   },
-  create_collector_unit("decider-combinator", (function()
-    local item = data.raw.item["decider-combinator"]
-    if item.icon then
-      return item.icon
-    end
-    if item.icons and item.icons[1] then
-      return item.icons[1].icon
-    end
-    return "__base__/graphics/icons/decider-combinator.png"
-  end)()),
-  create_collector_unit("nullius-motor-1", "__nullius__/graphics/icons/motor1.png"),
-  create_collector_unit("nullius-steel-plate", "__base__/graphics/icons/steel-plate.png"),
 })
 
-local tank = table.deepcopy(data.raw["unit"]["medium-spitter"])
-tank.name = "ren-enemy-tank"
-tank.icon = "__base__/graphics/icons/tank.png"
-tank.max_health = data.raw["car"]["tank"].max_health
-tank.factoriopedia_simulation = nil
-tank.resistances = {
-  { type = "physical", decrease = 10, percent = 50 },
-  { type = "explosion", decrease = 10, percent = 50 },
-  { type = "fire", percent = 90 },
-  { type = "poison", percent = 99 },
-  { type = "laser", decrease = 20, percent = 90 },
-  { type = "electric", decrease = 10, percent = 60 },
-}
-tank.absorptions_to_join_attack = { ["ren-data"] = 1000 }
-tank.run_animation = data.raw["car"]["tank"].animation
-tank.run_animation.tint = { r = 0, g = 0.5, b = 0.2, a = 1 }
-tank.working_sound = data.raw["car"]["tank"].working_sound
-tank.rotation_speed = data.raw["car"]["tank"].rotation_speed
-tank.alternative_attacking_frame_sequence = nil
-tank.corpse = data.raw["car"]["tank"].corpse
-tank.dying_explosion = data.raw["car"]["tank"].dying_explosion
-tank.dying_sound = nil
-tank.walking_sound = nil
-tank.water_reflection = nil
-tank.movement_speed = 0.08
-tank.collision_box = data.raw["car"]["tank"].collision_box
-tank.selection_box = data.raw["car"]["tank"].selection_box
-tank.attack_parameters = {
-  type = "projectile",
-  range = 10,
-  cooldown = 30,
-  cooldown_deviation = 0.15,
-  ammo_category = "bullet",
-  ammo_type = {
-    target_type = "entity",
-    action = {
-      type = "direct",
-      action_delivery = {
-        type = "instant",
-        source_effects = {
-          type = "create-explosion",
-          entity_name = "explosion-gunshot",
-        },
-        target_effects = {
-          { type = "create-entity", entity_name = "explosion-hit", offsets = { { 0, 1 } }, offset_deviation = { { -0.5, -0.5 }, { 0.5, 0.5 } } },
-          { type = "damage", damage = { amount = 24, type = "physical" } },
-          { type = "activate-impact", deliver_category = "bullet" },
+local car = data.raw["car"]["car"]
+local tank_car = data.raw["car"]["tank"]
+local spidertron = data.raw["spider-vehicle"]["spidertron"]
+
+local spider_animation = table.deepcopy(spidertron.graphics_set.animation)
+if spidertron.graphics_set.shadow_animation then
+  local shadow = table.deepcopy(spidertron.graphics_set.shadow_animation)
+  shadow.draw_as_shadow = true
+  table.insert(spider_animation.layers, shadow)
+end
+
+data:extend({
+  create_vehicle_enemy_unit({
+    name = "ren-enemy-buggy",
+    icon = "__base__/graphics/icons/car.png",
+    vehicle = car,
+    animation = car.animation,
+    working_sound = car.working_sound,
+    rotation_speed = car.rotation_speed,
+    movement_speed = 0.15,
+    absorption_cost = 400,
+    attack_parameters = {
+      type = "projectile",
+      range = 15,
+      cooldown = 15,
+      cooldown_deviation = 0.15,
+      ammo_category = "bullet",
+      ammo_type = {
+        target_type = "entity",
+        action = {
+          type = "direct",
+          action_delivery = {
+            type = "instant",
+            source_effects = {
+              type = "create-explosion",
+              entity_name = "explosion-gunshot",
+            },
+            target_effects = {
+              { type = "create-entity", entity_name = "explosion-hit", offsets = { { 0, 1 } }, offset_deviation = { { -0.5, -0.5 }, { 0.5, 0.5 } } },
+              { type = "damage", damage = { amount = 8, type = "physical" } },
+              { type = "activate-impact", deliver_category = "bullet" },
+            },
+          },
         },
       },
+      range_mode = "bounding-box-to-bounding-box",
     },
-  },
-  animation = tank.run_animation,
-  range_mode = "bounding-box-to-bounding-box",
-}
-data:extend({ tank })
+  }),
+  create_vehicle_enemy_unit({
+    name = "ren-enemy-tank",
+    icon = "__base__/graphics/icons/tank.png",
+    vehicle = tank_car,
+    animation = tank_car.animation,
+    working_sound = tank_car.working_sound,
+    rotation_speed = tank_car.rotation_speed,
+    movement_speed = 0.08,
+    absorption_cost = 1000,
+    resistances = {
+      { type = "physical", decrease = 10, percent = 50 },
+      { type = "explosion", decrease = 10, percent = 50 },
+      { type = "fire", percent = 90 },
+      { type = "poison", percent = 99 },
+      { type = "laser", decrease = 20, percent = 90 },
+      { type = "electric", decrease = 10, percent = 60 },
+    },
+    attack_parameters = {
+      type = "projectile",
+      range = 10,
+      cooldown = 30,
+      cooldown_deviation = 0.15,
+      ammo_category = "bullet",
+      ammo_type = {
+        target_type = "entity",
+        action = {
+          type = "direct",
+          action_delivery = {
+            type = "instant",
+            source_effects = {
+              type = "create-explosion",
+              entity_name = "explosion-gunshot",
+            },
+            target_effects = {
+              { type = "create-entity", entity_name = "explosion-hit", offsets = { { 0, 1 } }, offset_deviation = { { -0.5, -0.5 }, { 0.5, 0.5 } } },
+              { type = "damage", damage = { amount = 24, type = "physical" } },
+              { type = "activate-impact", deliver_category = "bullet" },
+            },
+          },
+        },
+      },
+      range_mode = "bounding-box-to-bounding-box",
+    },
+  }),
+  create_vehicle_enemy_unit({
+    name = "ren-enemy-spider",
+    icon = "__base__/graphics/icons/spidertron.png",
+    vehicle = spidertron,
+    spitter_base = "behemoth-spitter",
+    animation = spider_animation,
+    working_sound = spidertron.working_sound,
+    rotation_speed = spidertron.torso_rotation_speed,
+    movement_speed = 0.05,
+    absorption_cost = 2000,
+    resistances = table.deepcopy(spidertron.resistances),
+    attack_parameters = {
+      type = "projectile",
+      range = 18,
+      min_attack_distance = 4,
+      cooldown = 120,
+      cooldown_deviation = 0.2,
+      ammo_category = "rocket",
+      ammo_type = {
+        target_type = "position",
+        action = {
+          type = "direct",
+          action_delivery = {
+            type = "projectile",
+            projectile = "explosive-rocket",
+            starting_speed = 0.3,
+            max_range = 18,
+          },
+        },
+      },
+      range_mode = "bounding-box-to-bounding-box",
+    },
+  }),
+})
 
 local function multiply_energy_amount(energy_string, multiplier)
   local number, unit = energy_string:match("^(%d+%.?%d*)(%a*)$")

@@ -1,4 +1,11 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.5
+Date: 2026-06-04
+  - Remove collector drone units; spawner now deploys buggies, battle tanks, and spidertrons.
+  - Buggies use the vanilla car; spidertrons use vanilla spidertron stats and graphics.
+  - Evolution gates: buggies first, tanks mid, spidertrons last. Higher ren-data cost to spawn tougher units.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.4
 Date: 2026-06-04
   - Re-enable Nullius pollution; Nauvis uses ren-data pollutant for factory emissions and enemy attacks.

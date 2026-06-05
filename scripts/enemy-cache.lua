@@ -27,7 +27,9 @@ local function build_default_enemy_table()
     repair_pack = prototypes.item["repair-pack"] ~= nil,
     roboport = prototypes.entity["roboport"] ~= nil,
     construction_robot = prototypes.item["construction-robot"] ~= nil,
+    buggy = true,
     tank = true,
+    spider = true,
     land_mine = prototypes.entity["ren-land-mine"] ~= nil,
     quality_tier = prototypes.quality["normal"],
   }
