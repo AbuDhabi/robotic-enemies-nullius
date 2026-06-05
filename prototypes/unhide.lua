@@ -26,6 +26,12 @@ for _, prototype in pairs(data.raw["unit"]) do
   end
 end
 
+for _, prototype in pairs(data.raw["spider-unit"] or {}) do
+  if string.sub(prototype.name, 1, 4) == "ren-" then
+    clear_hidden(prototype)
+  end
+end
+
 for _, entity_type in pairs({ "ammo-turret", "electric-turret", "fluid-turret", "roboport", "solar-panel", "electric-pole", "land-mine" }) do
   for _, prototype in pairs(data.raw[entity_type] or {}) do
     if string.sub(prototype.name, 1, 9) == "ren-enemy-" or string.sub(prototype.name, 1, 4) == "ren-" then

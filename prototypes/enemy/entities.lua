@@ -17,6 +17,66 @@ local function tint_animation(animation, tint)
   return copy
 end
 
+local function tint_mask_layers(animation, tint)
+  if not animation then
+    return
+  end
+  if animation.layers then
+    for _, layer in ipairs(animation.layers) do
+      if layer.apply_runtime_tint then
+        layer.tint = tint
+      end
+    end
+  end
+end
+
+local function tint_graphics_set(graphics_set, tint)
+  local copy = table.deepcopy(graphics_set)
+  tint_mask_layers(copy.animation, tint)
+  tint_mask_layers(copy.base_animation, tint)
+  return copy
+end
+
+local function create_spider_enemy_unit(options)
+  local vehicle = options.vehicle
+  local graphics_set = tint_graphics_set(vehicle.graphics_set, enemy_tint)
+  local attack_parameters = table.deepcopy(options.attack_parameters)
+  attack_parameters.animation = graphics_set.animation
+
+  return {
+    type = "spider-unit",
+    name = options.name,
+    icon = options.icon,
+    flags = { "placeable-player", "placeable-enemy", "placeable-off-grid", "breaths-air", "not-repairable" },
+    max_health = vehicle.max_health,
+    order = "n-a-c",
+    subgroup = "enemies",
+    factoriopedia_simulation = nil,
+    impact_category = "metal",
+    resistances = table.deepcopy(options.resistances or vehicle.resistances),
+    healing_per_tick = 0.01,
+    collision_box = vehicle.collision_box,
+    sticker_box = vehicle.sticker_box,
+    selection_box = vehicle.selection_box,
+    drawing_box_vertical_extension = vehicle.drawing_box_vertical_extension,
+    distraction_cooldown = 300,
+    min_pursue_time = 10 * 60,
+    max_pursue_distance = 50,
+    vision_distance = 30,
+    absorptions_to_join_attack = { [options.pollutant or "ren-data"] = options.absorption_cost },
+    corpse = vehicle.corpse,
+    dying_explosion = vehicle.dying_explosion,
+    dying_sound = nil,
+    is_military_target = true,
+    working_sound = vehicle.working_sound,
+    height = vehicle.height,
+    torso_rotation_speed = vehicle.torso_rotation_speed,
+    graphics_set = graphics_set,
+    spider_engine = table.deepcopy(vehicle.spider_engine),
+    attack_parameters = attack_parameters,
+  }
+end
+
 local function create_vehicle_enemy_unit(options)
   local vehicle = options.vehicle
   local unit = table.deepcopy(data.raw["unit"][options.spitter_base or "medium-spitter"])
@@ -94,13 +154,6 @@ data:extend({
 local car = data.raw["car"]["car"]
 local tank_car = data.raw["car"]["tank"]
 local spidertron = data.raw["spider-vehicle"]["spidertron"]
-
-local spider_animation = table.deepcopy(spidertron.graphics_set.animation)
-if spidertron.graphics_set.shadow_animation then
-  local shadow = table.deepcopy(spidertron.graphics_set.shadow_animation)
-  shadow.draw_as_shadow = true
-  table.insert(spider_animation.layers, shadow)
-end
 
 data:extend({
   create_vehicle_enemy_unit({
@@ -183,15 +236,13 @@ data:extend({
       range_mode = "bounding-box-to-bounding-box",
     },
   }),
-  create_vehicle_enemy_unit({
+})
+
+data:extend({
+  create_spider_enemy_unit({
     name = "ren-enemy-spider",
     icon = "__base__/graphics/icons/spidertron.png",
     vehicle = spidertron,
-    spitter_base = "behemoth-spitter",
-    animation = spider_animation,
-    working_sound = spidertron.working_sound,
-    rotation_speed = spidertron.torso_rotation_speed,
-    movement_speed = 0.05,
     absorption_cost = 2000,
     resistances = table.deepcopy(spidertron.resistances),
     attack_parameters = {
