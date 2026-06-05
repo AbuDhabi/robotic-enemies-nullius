@@ -97,27 +97,29 @@ local function build_enemy_wall(chunk_area, pos)
     local transformedPoints = negateYCoordinates(points)
     local convexHull = grahamScan(transformedPoints)
     local restoredHull = restoreYCoordinates(convexHull)
-    local expandedHull = expandConvexHull(restoredHull, 2)
+    local expandedHull = expandConvexHull(restoredHull, config.WALL_HULL_EXPANSION)
 
     local quality = select_random_quality()
 
-    -- Create the walls along the expanded hull
-    local emptyWallSpots = 0
+    local function wall_segment_is_gate(index, total)
+        local gate_width = config.WALL_GATE_WIDTH
+        if total <= gate_width + 1 then
+            return true
+        end
+        local gate_start = math.floor(total / 2) - math.floor(gate_width / 2) + 1
+        local gate_end = gate_start + gate_width - 1
+        return index >= gate_start and index <= gate_end
+    end
+
+    -- Create walls along the expanded hull, leaving a centered vehicle gate on each face.
     for i = 1, #expandedHull do
         local p1 = expandedHull[i]
         local p2 = expandedHull[(i % #expandedHull) + 1]
         local wallPoints = plotLine(p1.x, p1.y, p2.x, p2.y)
-        for _, point in pairs(wallPoints) do
-            -- Randomly set some wall spots to be empty
-            if math.random() < 0.1 then
-                emptyWallSpots = emptyWallSpots + 3
-            end
-            if emptyWallSpots > 0 then
-                emptyWallSpots = emptyWallSpots - 1
-            else
-                if surface.can_place_entity { name = wall_type, position = point, force = enemy_force } then
-                    surface.create_entity { name = wall_type, position = point, force = enemy_force, quality = quality, raise_built = true }
-                end
+        for index, point in ipairs(wallPoints) do
+            if not wall_segment_is_gate(index, #wallPoints)
+                and surface.can_place_entity { name = wall_type, position = point, force = enemy_force } then
+                surface.create_entity { name = wall_type, position = point, force = enemy_force, quality = quality, raise_built = true }
             end
         end
     end

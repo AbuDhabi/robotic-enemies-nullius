@@ -1,5 +1,9 @@
 require("prototypes.emissions-patch")
 
+if settings.startup["ren-enable-auto-targeting"].value then
+  require("prototypes.combat-targeting").apply()
+end
+
 local spawner = data.raw["unit-spawner"]["ren-data-collector"]
 if spawner then
   local rate = 0.5

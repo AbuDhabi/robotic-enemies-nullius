@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.8
+Date: 2026-06-04
+  - Startup setting ren-enable-auto-targeting (default on): Nullius magazines/missiles target entities for combat.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.2.7
+Date: 2026-06-04
+  - Enemy base walls: wider perimeter offset and a centered vehicle gate on each wall face.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.6
 Date: 2026-06-04
   - Enemy spidertrons use spider-unit with vanilla spider_engine legs instead of a torso-only unit sprite.
