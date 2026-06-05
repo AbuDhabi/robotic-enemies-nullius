@@ -1,7 +1,11 @@
 require("prototypes.emissions-patch")
+require("prototypes.ammo-balance").apply()
 
+local combat_targeting = require("prototypes.combat-targeting")
 if settings.startup["ren-enable-auto-targeting"].value then
-  require("prototypes.combat-targeting").apply()
+  combat_targeting.apply_entity_targeting()
+else
+  combat_targeting.apply_demolition_targeting()
 end
 
 local spawner = data.raw["unit-spawner"]["ren-data-collector"]
