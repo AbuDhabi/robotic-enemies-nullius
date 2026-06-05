@@ -417,10 +417,10 @@ local function place_land_mines(data_collector_pos)
 
     -- Place a ~20 land mines around the data collector within a range of 20
     for i = 1, math.random(10, 30) do
-        local land_mine_pos = surface.find_non_colliding_position("land-mine",
+        local land_mine_pos = surface.find_non_colliding_position("ren-land-mine",
             { data_collector_pos.x + math.random(-20, 20), data_collector_pos.y + math.random(-20, 20) }, 8, 0.5, true)
         if land_mine_pos then
-            surface.create_entity { name = "land-mine", position = land_mine_pos, force = enemy_force, quality = select_random_quality(), raise_built = true }
+            surface.create_entity { name = "ren-land-mine", position = land_mine_pos, force = enemy_force, quality = select_random_quality(), raise_built = true }
         end
     end
 end

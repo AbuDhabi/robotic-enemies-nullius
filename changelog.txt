@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.3
+Date: 2026-06-04
+  - Enemy bases use ren-land-mine: 50% movement speed for 3s instead of full stun.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.2.2
+Date: 2026-06-04
+  - Add English locale strings for all ren- enemy entities.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.1
 Date: 2026-06-04
   - Bundle fusion-reactor graphics in-mod; no castra-prime-assets dependency.
