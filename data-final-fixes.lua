@@ -1,3 +1,5 @@
+require("prototypes.emissions-patch")
+
 local spawner = data.raw["unit-spawner"]["ren-data-collector"]
 if spawner then
   local rate = 0.5

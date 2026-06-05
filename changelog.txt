@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.4
+Date: 2026-06-04
+  - Re-enable Nullius pollution; Nauvis uses ren-data pollutant for factory emissions and enemy attacks.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.3
 Date: 2026-06-04
   - Enemy bases use ren-land-mine: 50% movement speed for 3s instead of full stun.

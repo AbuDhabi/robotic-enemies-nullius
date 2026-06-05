@@ -8,6 +8,12 @@ local function enemies_enabled()
   return settings.startup["ren-enable-robotic-enemies"].value
 end
 
+local function ensure_pollution_system()
+  if game.map_settings.pollution then
+    game.map_settings.pollution.enabled = true
+  end
+end
+
 local function track_collector(entity)
   if not entity.valid or entity.name ~= ren.SPAWNER or entity.force.name ~= "enemy" then
     return
@@ -128,12 +134,14 @@ local function give_tank_random_command(tank, selection)
 end
 
 script.on_init(function()
+  ensure_pollution_system()
   storage.ren = storage.ren or {}
   storage.ren.dataCollectors = storage.ren.dataCollectors or {}
   enemy_cache.build_cache_if_needed()
 end)
 
 script.on_configuration_changed(function()
+  ensure_pollution_system()
   storage.ren = storage.ren or {}
   storage.ren.dataCollectors = storage.ren.dataCollectors or {}
   enemy_cache.build_cache_if_needed()
