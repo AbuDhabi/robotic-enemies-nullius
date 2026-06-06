@@ -1,6 +1,10 @@
 -- Enemy entities adapted from Castra Prime (GPL-3.0).
 
 require("__base__.prototypes.entity.biter-animations")
+require("__base__.prototypes.entity.character-animations")
+
+local biter_ai_settings = require("__base__.prototypes.entity.biter-ai-settings")
+local hit_effects = require("__base__.prototypes.entity.hit-effects")
 
 local gfx = require("prototypes.graphics")
 local spawner_graphics = gfx.spawner_graphics_set()
@@ -77,6 +81,87 @@ local function create_spider_enemy_unit(options)
   }
 end
 
+local function character_run_animation()
+  return {
+    layers = {
+      character_animations.level1.running,
+      character_animations.level1.running_mask,
+      character_animations.level1.running_shadow,
+    },
+  }
+end
+
+local function character_melee_animation()
+  return {
+    layers = {
+      character_animations.level1.mining_tool,
+      character_animations.level1.mining_tool_mask,
+      character_animations.level1.mining_tool_shadow,
+    },
+  }
+end
+
+local function make_melee_ammo_type(damage_value)
+  return {
+    target_type = "entity",
+    action = {
+      type = "direct",
+      action_delivery = {
+        type = "instant",
+        target_effects = {
+          type = "damage",
+          damage = { amount = damage_value, type = "physical" },
+        },
+      },
+    },
+  }
+end
+
+local function create_android_enemy_unit(options)
+  local character = data.raw.character.character
+  local light_armor = data.raw.armor["light-armor"]
+  local unit = table.deepcopy(data.raw.unit["small-biter"])
+  local run_animation = character_run_animation()
+  local attack_animation = character_melee_animation()
+
+  unit.name = options.name
+  unit.icon = options.icon
+  unit.flags = { "placeable-player", "placeable-enemy", "placeable-off-grid", "breaths-air", "not-repairable" }
+  unit.max_health = character.max_health
+  unit.healing_per_tick = character.healing_per_tick
+  unit.factoriopedia_simulation = nil
+  unit.resistances = light_armor and table.deepcopy(light_armor.resistances) or {}
+  unit.absorptions_to_join_attack = { [options.pollutant or "ren-data"] = options.absorption_cost }
+  unit.run_animation = run_animation
+  unit.impact_category = "metal"
+  unit.collision_box = character.collision_box
+  unit.selection_box = character.selection_box
+  unit.sticker_box = character.sticker_box
+  unit.damaged_trigger_effect = hit_effects.entity()
+  unit.movement_speed = character.running_speed
+  unit.distance_per_frame = character.distance_per_frame
+  unit.corpse = "character-corpse"
+  unit.dying_explosion = nil
+  unit.dying_sound = nil
+  unit.working_sound = nil
+  unit.walking_sound = nil
+  unit.water_reflection = nil
+  unit.ai_settings = biter_ai_settings
+  unit.is_military_target = true
+  unit.attack_parameters = {
+    type = "projectile",
+    range = 1.5,
+    cooldown = 30,
+    cooldown_deviation = 0.15,
+    damage_modifier = 1,
+    ammo_category = "melee",
+    ammo_type = make_melee_ammo_type(options.melee_damage or 8),
+    animation = attack_animation,
+    range_mode = "bounding-box-to-bounding-box",
+  }
+  return unit
+end
+
 local function create_vehicle_enemy_unit(options)
   local vehicle = options.vehicle
   local unit = table.deepcopy(data.raw["unit"][options.spitter_base or "medium-spitter"])
@@ -144,7 +229,8 @@ data:extend({
     max_richness_for_spawn_shift = 100,
     call_for_help_radius = 0,
     result_units = {
-      { "ren-enemy-buggy", { { 0.0, 0.10 }, { 0.3, 0.12 }, { 0.5, 0.08 }, { 1.0, 0.05 } } },
+      { "ren-enemy-android", { { 0.0, 0.18 }, { 0.2, 0.12 }, { 0.4, 0.06 }, { 1.0, 0.03 } } },
+      { "ren-enemy-buggy", { { 0.0, 0.0 }, { 0.1, 0.08 }, { 0.3, 0.12 }, { 0.5, 0.08 }, { 1.0, 0.05 } } },
       { "ren-enemy-tank", { { 0.0, 0.0 }, { 0.35, 0.0 }, { 0.45, 0.08 }, { 1.0, 0.10 } } },
       { "ren-enemy-spider", { { 0.0, 0.0 }, { 0.65, 0.0 }, { 0.75, 0.05 }, { 1.0, 0.08 } } },
     },
@@ -156,6 +242,12 @@ local tank_car = data.raw["car"]["tank"]
 local spidertron = data.raw["spider-vehicle"]["spidertron"]
 
 data:extend({
+  create_android_enemy_unit({
+    name = "ren-enemy-android",
+    icon = "__core__/graphics/icons/entity/character.png",
+    absorption_cost = 200,
+    melee_damage = 8,
+  }),
   create_vehicle_enemy_unit({
     name = "ren-enemy-buggy",
     icon = "__base__/graphics/icons/car.png",

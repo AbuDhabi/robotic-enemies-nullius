@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.13
+Date: 2026-06-04
+  - Add ren-enemy-android: engineer appearance, light-armor stats, melee attacks; spawns before buggies at zero evolution.
+  - Buggies now unlock at 10% evolution; melee ammo category included in evolution damage scaling.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.12
 Date: 2026-06-04
   - Fix evolution damage scaling: sync enemy force ammo modifiers (bullet/rocket/laser/flamethrower) from current Nauvis evolution.

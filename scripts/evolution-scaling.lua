@@ -6,6 +6,7 @@ local ren = require("scripts.constants")
 local M = {}
 
 local AMMO_CATEGORIES = {
+  "melee",
   "bullet",
   "rocket",
   "laser",
