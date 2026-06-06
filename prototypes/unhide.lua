@@ -41,3 +41,5 @@ for _, entity_type in pairs({ "ammo-turret", "electric-turret", "fluid-turret", 
 end
 
 clear_hidden(data.raw.technology["nullius-robotic-defense-1"])
+clear_hidden(data.raw.technology["nullius-self-defense-1"])
+clear_hidden(data.raw.capsule["nullius-grenade"])

@@ -24,4 +24,26 @@ data:extend({
       time = 45,
     },
   },
+  {
+    type = "technology",
+    name = "nullius-self-defense-1",
+    localised_name = { "technology-name.nullius-self-defense-1" },
+    localised_description = { "technology-description.nullius-self-defense-1" },
+    order = "nullius-cf",
+    icon = "__base__/graphics/icons/grenade.png",
+    icon_size = 64,
+    prerequisites = { "nullius-energy-storage-1", "nullius-hydrocarbon-combustion-2" },
+    effects = {
+      { type = "unlock-recipe", recipe = "nullius-grenade" },
+    },
+    unit = {
+      count = 10,
+      ingredients = {
+        { "nullius-climatology-pack", 1 },
+        { "nullius-mechanical-pack", 1 },
+      },
+      time = 6,
+    },
+    ignore_tech_cost_multiplier = true,
+  },
 })

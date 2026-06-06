@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.25
+Date: 2026-06-06
+  - Add Self Defense 1 (+100% hand-to-hand damage vs enemies) and Self Defense 2 (hand-craftable grenades).
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.24
 Date: 2026-06-06
   - Battle spidertrons fire rockets twice as fast (60-tick cooldown).

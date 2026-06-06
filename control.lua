@@ -52,6 +52,35 @@ local function prune_invalid_collectors()
   end
 end
 
+local function migrate_self_defense_tech()
+  storage.ren = storage.ren or {}
+  if storage.ren.self_defense_tech_migrated then
+    return
+  end
+
+  for _, force in pairs(game.forces) do
+    if force.name == "enemy" or force.name == "neutral" then
+      goto continue
+    end
+
+    local grenade_tech = force.technologies["nullius-self-defense-1"]
+    local legacy_grenade_tech = force.technologies["nullius-self-defense-2"]
+    if not grenade_tech then
+      goto continue
+    end
+
+    if legacy_grenade_tech and legacy_grenade_tech.researched then
+      grenade_tech.researched = true
+    elseif grenade_tech.researched and (not legacy_grenade_tech or not legacy_grenade_tech.researched) then
+      grenade_tech.researched = false
+    end
+
+    ::continue::
+  end
+
+  storage.ren.self_defense_tech_migrated = true
+end
+
 local function clear_vehicle_unit_commands()
   local surface = game.surfaces[ren.SURFACE]
   if not surface then
@@ -76,6 +105,7 @@ script.on_configuration_changed(function()
   ensure_pollution_system()
   storage.ren = storage.ren or {}
   storage.ren.dataCollectors = storage.ren.dataCollectors or {}
+  migrate_self_defense_tech()
   enemy_cache.build_cache_if_needed()
   storage.ren.lastEnemyDamageMultiplier = nil
   evolution_scaling.sync_force_damage_modifiers()
