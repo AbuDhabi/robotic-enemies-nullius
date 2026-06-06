@@ -170,6 +170,7 @@ data:extend({
       range = 15,
       cooldown = 15,
       cooldown_deviation = 0.15,
+      damage_modifier = 1,
       ammo_category = "bullet",
       ammo_type = {
         target_type = "entity",
@@ -214,6 +215,7 @@ data:extend({
       range = 10,
       cooldown = 30,
       cooldown_deviation = 0.15,
+      damage_modifier = 1,
       ammo_category = "bullet",
       ammo_type = {
         target_type = "entity",
@@ -251,6 +253,7 @@ data:extend({
       min_attack_distance = 4,
       cooldown = 120,
       cooldown_deviation = 0.2,
+      damage_modifier = 1,
       ammo_category = "rocket",
       ammo_type = {
         target_type = "position",

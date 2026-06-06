@@ -14,6 +14,13 @@ M.EVOLUTION_UNLOCK = {
   [M.SPIDER] = 0.65,
 }
 
+-- Matches vanilla enemy spawner health scaling: 1x at evolution 0, 10x at evolution 1.
+M.EVOLUTION_DAMAGE_FACTOR = 9
+
+function M.evolution_combat_multiplier(evolution)
+  return 1 + M.EVOLUTION_DAMAGE_FACTOR * evolution
+end
+
 function M.is_vehicle_unit(name)
   return M.EVOLUTION_UNLOCK[name] ~= nil
 end

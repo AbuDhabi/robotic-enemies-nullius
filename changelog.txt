@@ -1,4 +1,14 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.12
+Date: 2026-06-04
+  - Fix evolution damage scaling: sync enemy force ammo modifiers (bullet/rocket/laser/flamethrower) from current Nauvis evolution.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.2.11
+Date: 2026-06-04
+  - Mobile units and enemy turrets scale attack damage with Nauvis evolution (1x to 10x, matching spawner health).
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.10
 Date: 2026-06-04
   - Magazine 1 matches piercing rounds (8 damage); Magazine 2 matches uranium rounds (24 damage).

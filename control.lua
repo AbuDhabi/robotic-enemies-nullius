@@ -2,6 +2,7 @@
 
 local enemy_cache = require("scripts.enemy-cache")
 local base_generator = require("scripts.base-generator")
+local evolution_scaling = require("scripts.evolution-scaling")
 local ren = require("scripts.constants")
 
 local function enemies_enabled()
@@ -132,6 +133,7 @@ script.on_init(function()
   storage.ren = storage.ren or {}
   storage.ren.dataCollectors = storage.ren.dataCollectors or {}
   enemy_cache.build_cache_if_needed()
+  evolution_scaling.sync_force_damage_modifiers()
 end)
 
 script.on_configuration_changed(function()
@@ -139,6 +141,8 @@ script.on_configuration_changed(function()
   storage.ren = storage.ren or {}
   storage.ren.dataCollectors = storage.ren.dataCollectors or {}
   enemy_cache.build_cache_if_needed()
+  storage.ren.lastEnemyDamageMultiplier = nil
+  evolution_scaling.sync_force_damage_modifiers()
 end)
 
 script.on_event(defines.events.on_chunk_generated, function(event)
@@ -205,6 +209,10 @@ script.on_event(defines.events.script_raised_destroy, destroyed_event)
 script.on_event(defines.events.on_tick, function(event)
   if not enemies_enabled() or not enemy_cache.nauvis_exists() then
     return
+  end
+
+  if event.tick % 60 == 0 then
+    evolution_scaling.sync_force_damage_modifiers()
   end
 
   if event.tick % 2000 == 1277 then
