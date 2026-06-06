@@ -46,4 +46,29 @@ data:extend({
     },
     ignore_tech_cost_multiplier = true,
   },
+  {
+    type = "technology",
+    name = "nullius-self-defense-2",
+    localised_name = { "technology-name.nullius-self-defense-2" },
+    localised_description = { "technology-description.nullius-self-defense-2" },
+    order = "nullius-cg",
+    icon = "__base__/graphics/icons/pistol.png",
+    icon_size = 64,
+    prerequisites = { "nullius-explosives-1", "nullius-weaving-1" },
+    effects = {
+      { type = "unlock-recipe", recipe = "nullius-gun" },
+      { type = "unlock-recipe", recipe = "nullius-magazine-improvised" },
+    },
+    unit = {
+      count = 25,
+      ingredients = {
+        { "nullius-geology-pack", 1 },
+        { "nullius-climatology-pack", 1 },
+        { "nullius-mechanical-pack", 1 },
+        { "nullius-electrical-pack", 1 },
+      },
+      time = 15,
+    },
+    ignore_tech_cost_multiplier = true,
+  },
 })

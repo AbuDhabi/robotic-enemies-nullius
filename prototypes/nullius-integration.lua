@@ -18,7 +18,18 @@ local function add_prerequisite(tech_name, prerequisite)
   end
 end
 
--- Placeholder: wire future defense tech branch after demolitions exists.
-if data.raw.technology["nullius-demolitions-1"] then
-  -- add_prerequisite("nullius-robotic-defense-1", "nullius-demolitions-1")
+local function remove_unlock_recipe(tech_name, recipe_name)
+  local tech = data.raw.technology[tech_name]
+  if not tech or not tech.effects then
+    return
+  end
+  for index = #tech.effects, 1, -1 do
+    local effect = tech.effects[index]
+    if effect.type == "unlock-recipe" and effect.recipe == recipe_name then
+      table.remove(tech.effects, index)
+    end
+  end
 end
+
+remove_unlock_recipe("nullius-demolitions-1", "nullius-gun")
+add_prerequisite("nullius-demolitions-1", "nullius-self-defense-2")

@@ -4,6 +4,7 @@ local enemy_cache = require("scripts.enemy-cache")
 local base_generator = require("scripts.base-generator")
 local evolution_scaling = require("scripts.evolution-scaling")
 local ren = require("scripts.constants")
+local magazine_recipes = require("scripts.magazine-recipes")
 
 local function enemies_enabled()
   return settings.startup["ren-enable-robotic-enemies"].value
@@ -93,12 +94,15 @@ local function clear_vehicle_unit_commands()
   end
 end
 
+magazine_recipes.register()
+
 script.on_init(function()
   ensure_pollution_system()
   storage.ren = storage.ren or {}
   storage.ren.dataCollectors = storage.ren.dataCollectors or {}
   enemy_cache.build_cache_if_needed()
   evolution_scaling.sync_force_damage_modifiers()
+  magazine_recipes.sync_all_forces()
 end)
 
 script.on_configuration_changed(function()
@@ -110,6 +114,7 @@ script.on_configuration_changed(function()
   storage.ren.lastEnemyDamageMultiplier = nil
   evolution_scaling.sync_force_damage_modifiers()
   clear_vehicle_unit_commands()
+  magazine_recipes.sync_all_forces()
 end)
 
 script.on_event(defines.events.on_chunk_generated, function(event)
