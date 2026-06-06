@@ -5,8 +5,9 @@ M.SPAWNER = "ren-data-collector"
 M.ANDROID = "ren-enemy-android"
 M.BUGGY = "ren-enemy-buggy"
 M.TANK = "ren-enemy-tank"
+M.KAMIKAZE = "ren-enemy-kamikaze"
 M.SPIDER = "ren-enemy-spider"
-M.VEHICLE_UNITS = { M.ANDROID, M.BUGGY, M.TANK, M.SPIDER }
+M.VEHICLE_UNITS = { M.ANDROID, M.BUGGY, M.TANK, M.KAMIKAZE, M.SPIDER }
 M.POLLUTANT = "ren-data"
 
 -- Enemy bases never generate within this distance of map origin (spawn).
@@ -16,6 +17,7 @@ M.EVOLUTION_UNLOCK = {
   [M.ANDROID] = 0,
   [M.BUGGY] = 0.1,
   [M.TANK] = 0.35,
+  [M.KAMIKAZE] = 0.5,
   [M.SPIDER] = 0.65,
 }
 

@@ -102,6 +102,165 @@ local function character_melee_animation()
   }
 end
 
+local function defender_run_animation()
+  return {
+    layers = {
+      {
+        filename = "__base__/graphics/entity/defender-robot/defender-robot.png",
+        priority = "high",
+        line_length = 16,
+        width = 56,
+        height = 59,
+        animation_speed = 1,
+        direction_count = 16,
+        shift = util.by_pixel(0, 0.25),
+        y = 59,
+        scale = 0.5,
+      },
+      {
+        filename = "__base__/graphics/entity/defender-robot/defender-robot-mask.png",
+        priority = "high",
+        line_length = 16,
+        width = 28,
+        height = 21,
+        animation_speed = 1,
+        direction_count = 16,
+        shift = util.by_pixel(0, -4.75),
+        apply_runtime_tint = true,
+        y = 21,
+        scale = 0.5,
+      },
+      {
+        filename = "__base__/graphics/entity/defender-robot/defender-robot-shadow.png",
+        priority = "high",
+        line_length = 16,
+        width = 88,
+        height = 50,
+        animation_speed = 1,
+        direction_count = 16,
+        shift = util.by_pixel(25.5, 19),
+        scale = 0.5,
+        draw_as_shadow = true,
+      },
+    },
+  }
+end
+
+local function explosive_rocket_suicide_effects()
+  return {
+    {
+      type = "create-entity",
+      entity_name = "big-explosion",
+      only_when_visible = true,
+    },
+    {
+      type = "damage",
+      damage = { amount = 50, type = "explosion" },
+    },
+    {
+      type = "create-entity",
+      entity_name = "medium-scorchmark-tintable",
+      check_buildability = true,
+    },
+    {
+      type = "invoke-tile-trigger",
+      repeat_count = 1,
+    },
+    {
+      type = "destroy-decoratives",
+      from_render_layer = "decorative",
+      to_render_layer = "object",
+      include_soft_decoratives = true,
+      include_decals = false,
+      invoke_decorative_trigger = true,
+      decoratives_with_trigger_only = false,
+      radius = 3.5,
+    },
+    {
+      type = "nested-result",
+      action = {
+        type = "area",
+        radius = 6.5,
+        action_delivery = {
+          type = "instant",
+          target_effects = {
+            {
+              type = "damage",
+              damage = { amount = 100, type = "explosion" },
+            },
+            {
+              type = "create-entity",
+              entity_name = "explosion",
+              only_when_visible = true,
+            },
+          },
+        },
+      },
+    },
+  }
+end
+
+local function create_kamikaze_enemy_unit(options)
+  local defender = data.raw["combat-robot"]["defender"]
+  local run_animation = defender_run_animation()
+  local unit = table.deepcopy(data.raw.unit["small-biter"])
+
+  unit.name = options.name
+  unit.icon = options.icon
+  unit.flags = { "placeable-player", "placeable-enemy", "placeable-off-grid", "breaths-air", "not-repairable" }
+  unit.subgroup = "enemies"
+  unit.render_layer = "air-object"
+  unit.max_health = options.max_health or 40
+  unit.healing_per_tick = 0
+  unit.factoriopedia_simulation = nil
+  unit.resistances = table.deepcopy(defender.resistances)
+  unit.absorptions_to_join_attack = { [options.pollutant or "ren-data"] = options.absorption_cost }
+  unit.collision_box = defender.collision_box
+  unit.selection_box = defender.selection_box
+  unit.sticker_box = defender.sticker_box
+  unit.hit_visualization_box = defender.hit_visualization_box
+  unit.collision_mask = { layers = {} }
+  unit.damaged_trigger_effect = hit_effects.flying_robot()
+  unit.run_animation = run_animation
+  unit.impact_category = "metal"
+  unit.corpse = "defender-remnants"
+  unit.dying_explosion = "defender-robot-explosion"
+  unit.dying_sound = nil
+  unit.working_sound = defender.working_sound
+  unit.walking_sound = nil
+  unit.water_reflection = defender.water_reflection
+  unit.movement_speed = options.movement_speed or 0.4
+  unit.distance_per_frame = 0.05
+  unit.distraction_cooldown = 300
+  unit.min_pursue_time = 10 * 60
+  unit.max_pursue_distance = 50
+  unit.vision_distance = 30
+  unit.ai_settings = biter_ai_settings
+  unit.is_military_target = true
+  unit.attack_parameters = {
+    type = "projectile",
+    range = options.attack_range or 1.5,
+    min_attack_distance = 0,
+    cooldown = 20,
+    cooldown_deviation = 0.1,
+    damage_modifier = 1,
+    ammo_category = "rocket",
+    ammo_type = {
+      target_type = "entity",
+      action = {
+        type = "direct",
+        action_delivery = {
+          type = "instant",
+          source_effects = explosive_rocket_suicide_effects(),
+        },
+      },
+    },
+    animation = run_animation,
+    range_mode = "bounding-box-to-bounding-box",
+  }
+  return unit
+end
+
 local function make_melee_ammo_type(damage_value)
   return {
     target_type = "entity",
@@ -236,6 +395,7 @@ data:extend({
       { "ren-enemy-android", { { 0.0, 0.18 }, { 0.2, 0.12 }, { 0.4, 0.06 }, { 1.0, 0.03 } } },
       { "ren-enemy-buggy", { { 0.0, 0.0 }, { 0.1, 0.08 }, { 0.3, 0.12 }, { 0.5, 0.08 }, { 1.0, 0.05 } } },
       { "ren-enemy-tank", { { 0.0, 0.0 }, { 0.35, 0.0 }, { 0.45, 0.08 }, { 1.0, 0.10 } } },
+      { "ren-enemy-kamikaze", { { 0.0, 0.0 }, { 0.5, 0.0 }, { 0.55, 0.10 }, { 1.0, 0.06 } } },
       { "ren-enemy-spider", { { 0.0, 0.0 }, { 0.65, 0.0 }, { 0.75, 0.05 }, { 1.0, 0.08 } } },
     },
   },
@@ -333,6 +493,14 @@ data:extend({
       },
       range_mode = "bounding-box-to-bounding-box",
     },
+  }),
+  create_kamikaze_enemy_unit({
+    name = "ren-enemy-kamikaze",
+    icon = "__base__/graphics/icons/defender.png",
+    absorption_cost = 1500,
+    max_health = 40,
+    movement_speed = 0.4,
+    attack_range = 1.5,
   }),
 })
 
