@@ -140,8 +140,8 @@ local function create_android_enemy_unit(options)
   unit.damaged_trigger_effect = hit_effects.entity()
   unit.movement_speed = character.running_speed
   unit.distance_per_frame = character.distance_per_frame
-  unit.corpse = "character-corpse"
-  unit.dying_explosion = nil
+  unit.corpse = nil
+  unit.dying_explosion = "ren-android-die"
   unit.dying_sound = nil
   unit.working_sound = nil
   unit.walking_sound = nil

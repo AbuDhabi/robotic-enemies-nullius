@@ -1,4 +1,24 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.17
+Date: 2026-06-04
+  - Android death explosion switched to vanilla inserter explosion effect.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.2.16
+Date: 2026-06-04
+  - Android death now uses the medium electric pole explosion (visible flash, smoke, debris).
+
+---------------------------------------------------------------------------------------------------
+Version: 0.2.15
+Date: 2026-06-04
+  - Fix invisible android death pop: spawn a separate burst explosion with sound via created_effect.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.2.14
+Date: 2026-06-04
+  - Androids no longer leave character corpses; they pop with a small harmless explosion and a scorch mark.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.13
 Date: 2026-06-04
   - Add ren-enemy-android: engineer appearance, light-armor stats, melee attacks; spawns before buggies at zero evolution.
