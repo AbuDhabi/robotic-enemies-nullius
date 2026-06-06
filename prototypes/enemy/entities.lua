@@ -78,6 +78,7 @@ local function create_spider_enemy_unit(options)
     graphics_set = graphics_set,
     spider_engine = table.deepcopy(vehicle.spider_engine),
     attack_parameters = attack_parameters,
+    ai_settings = biter_ai_settings,
   }
 end
 
@@ -185,6 +186,7 @@ local function create_vehicle_enemy_unit(options)
   unit.selection_box = vehicle.selection_box
   unit.attack_parameters = options.attack_parameters
   unit.attack_parameters.animation = unit.run_animation
+  unit.ai_settings = biter_ai_settings
   return unit
 end
 
@@ -217,6 +219,8 @@ data:extend({
     map_generator_bounding_box = { { -3.7, -3.2 }, { 3.7, 3.2 } },
     selection_box = { { -3, -3 }, { 3, 3 } },
     impact_category = "metal",
+    corpse = nil,
+    dying_explosion = "ren-data-collector-die",
     absorptions_per_second = { ["ren-data"] = { absolute = 20, proportional = 0.01 } },
     max_count_of_owned_units = 10,
     max_friends_around_to_spawn = 5,

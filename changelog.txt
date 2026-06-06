@@ -1,4 +1,19 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.20
+Date: 2026-06-06
+  - Destroyed data collectors now erupt with the nuclear reactor explosion and leave a big scorch mark.
+
+---------------------------------------------------------------------------------------------------
+Version: 0.2.19
+Date: 2026-06-06
+  - Triple the enemy-free starting area (no bases within 600 tiles of spawn).
+
+---------------------------------------------------------------------------------------------------
+Version: 0.2.18
+Date: 2026-06-06
+  - Mobile enemies no longer roam the map; they stay near their base until ren-data pollution triggers an attack.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.17
 Date: 2026-06-06
   - Android death explosion switched to vanilla inserter explosion effect.

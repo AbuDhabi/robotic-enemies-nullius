@@ -9,6 +9,9 @@ M.SPIDER = "ren-enemy-spider"
 M.VEHICLE_UNITS = { M.ANDROID, M.BUGGY, M.TANK, M.SPIDER }
 M.POLLUTANT = "ren-data"
 
+-- Enemy bases never generate within this distance of map origin (spawn).
+M.MIN_BASE_SPAWN_DISTANCE = 600
+
 M.EVOLUTION_UNLOCK = {
   [M.ANDROID] = 0,
   [M.BUGGY] = 0.1,

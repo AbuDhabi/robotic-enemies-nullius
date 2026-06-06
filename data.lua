@@ -1,6 +1,7 @@
 require("prototypes.graphics")
 require("prototypes.pollution")
 require("prototypes.enemy.android-death")
+require("prototypes.enemy.collector-death")
 require("prototypes.enemy.entities")
 require("prototypes.enemy.land-mine")
 require("prototypes.technology")
