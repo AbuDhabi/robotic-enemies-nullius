@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.24
+Date: 2026-06-06
+  - Battle spidertrons fire rockets twice as fast (60-tick cooldown).
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.23
 Date: 2026-06-06
   - Battle tanks fire vanilla cannon shells (turret animation, projectile, 100 explosion + piercing physical damage).

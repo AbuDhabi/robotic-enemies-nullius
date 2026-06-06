@@ -518,7 +518,7 @@ data:extend({
       type = "projectile",
       range = 18,
       min_attack_distance = 4,
-      cooldown = 120,
+      cooldown = 60,
       cooldown_deviation = 0.2,
       damage_modifier = 1,
       ammo_category = "rocket",
