@@ -8,6 +8,7 @@ local M = {}
 local AMMO_CATEGORIES = {
   "melee",
   "bullet",
+  "cannon-shell",
   "rocket",
   "laser",
   "flamethrower",

@@ -1,4 +1,9 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.23
+Date: 2026-06-06
+  - Battle tanks fire vanilla cannon shells (turret animation, projectile, 100 explosion + piercing physical damage).
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.22
 Date: 2026-06-06
   - Double kamikaze drone movement speed.

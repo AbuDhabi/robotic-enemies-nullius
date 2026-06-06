@@ -5,6 +5,7 @@ require("__base__.prototypes.entity.character-animations")
 
 local biter_ai_settings = require("__base__.prototypes.entity.biter-ai-settings")
 local hit_effects = require("__base__.prototypes.entity.hit-effects")
+local sounds = require("__base__.prototypes.entity.sounds")
 
 local gfx = require("prototypes.graphics")
 local spawner_graphics = gfx.spawner_graphics_set()
@@ -322,6 +323,19 @@ local function create_android_enemy_unit(options)
   return unit
 end
 
+local function tank_cannon_attack_ammo_type()
+  local ammo_type = table.deepcopy(data.raw.ammo["cannon-shell"].ammo_type)
+  ammo_type.target_type = "entity"
+  ammo_type.action.action_delivery.min_range = 0
+  return ammo_type
+end
+
+local function tank_turret_attack_animation(vehicle)
+  local animation = table.deepcopy(vehicle.turret_animation)
+  tint_mask_layers(animation, enemy_tint)
+  return animation
+end
+
 local function create_vehicle_enemy_unit(options)
   local vehicle = options.vehicle
   local unit = table.deepcopy(data.raw["unit"][options.spitter_base or "medium-spitter"])
@@ -344,7 +358,7 @@ local function create_vehicle_enemy_unit(options)
   unit.collision_box = vehicle.collision_box
   unit.selection_box = vehicle.selection_box
   unit.attack_parameters = options.attack_parameters
-  unit.attack_parameters.animation = unit.run_animation
+  unit.attack_parameters.animation = options.attack_animation or unit.run_animation
   unit.ai_settings = biter_ai_settings
   return unit
 end
@@ -454,6 +468,7 @@ data:extend({
     icon = "__base__/graphics/icons/tank.png",
     vehicle = tank_car,
     animation = tank_car.animation,
+    attack_animation = tank_turret_attack_animation(tank_car),
     working_sound = tank_car.working_sound,
     rotation_speed = tank_car.rotation_speed,
     movement_speed = 0.08,
@@ -468,29 +483,17 @@ data:extend({
     },
     attack_parameters = {
       type = "projectile",
-      range = 10,
-      cooldown = 30,
+      ammo_category = "cannon-shell",
+      cooldown = 90,
       cooldown_deviation = 0.15,
       damage_modifier = 1,
-      ammo_category = "bullet",
-      ammo_type = {
-        target_type = "entity",
-        action = {
-          type = "direct",
-          action_delivery = {
-            type = "instant",
-            source_effects = {
-              type = "create-explosion",
-              entity_name = "explosion-gunshot",
-            },
-            target_effects = {
-              { type = "create-entity", entity_name = "explosion-hit", offsets = { { 0, 1 } }, offset_deviation = { { -0.5, -0.5 }, { 0.5, 0.5 } } },
-              { type = "damage", damage = { amount = 24, type = "physical" } },
-              { type = "activate-impact", deliver_category = "bullet" },
-            },
-          },
-        },
-      },
+      movement_slow_down_factor = 0,
+      projectile_creation_distance = 1.6,
+      projectile_center = { -0.15625, -0.07812 },
+      range = 10,
+      min_attack_distance = 0,
+      sound = sounds.tank_gunshot,
+      ammo_type = tank_cannon_attack_ammo_type(),
       range_mode = "bounding-box-to-bounding-box",
     },
   }),
