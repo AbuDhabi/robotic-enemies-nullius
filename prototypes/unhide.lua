@@ -43,4 +43,7 @@ end
 clear_hidden(data.raw.technology["nullius-robotic-defense-1"])
 clear_hidden(data.raw.technology["nullius-self-defense-1"])
 clear_hidden(data.raw.technology["nullius-self-defense-2"])
+clear_hidden(data.raw.technology["nullius-automated-defense-1"])
 clear_hidden(data.raw.capsule["nullius-grenade"])
+clear_hidden(data.raw.item["nullius-gun-turret"])
+clear_hidden(data.raw["ammo-turret"]["nullius-gun-turret"])

@@ -71,4 +71,28 @@ data:extend({
     },
     ignore_tech_cost_multiplier = true,
   },
+  {
+    type = "technology",
+    name = "nullius-automated-defense-1",
+    localised_name = { "technology-name.nullius-automated-defense-1" },
+    localised_description = { "technology-description.nullius-automated-defense-1" },
+    order = "nullius-ch",
+    icon = "__base__/graphics/icons/gun-turret.png",
+    icon_size = 64,
+    prerequisites = { "nullius-self-defense-2", "nullius-sensors-1" },
+    effects = {
+      { type = "unlock-recipe", recipe = "nullius-gun-turret" },
+    },
+    unit = {
+      count = 50,
+      ingredients = {
+        { "nullius-geology-pack", 1 },
+        { "nullius-climatology-pack", 1 },
+        { "nullius-mechanical-pack", 1 },
+        { "nullius-electrical-pack", 1 },
+      },
+      time = 20,
+    },
+    ignore_tech_cost_multiplier = true,
+  },
 })
