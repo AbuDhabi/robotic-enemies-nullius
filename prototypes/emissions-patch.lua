@@ -1,29 +1,33 @@
 -- Nullius machines declare emissions as { pollution = N }; Nauvis uses ren-data as pollutant_type.
 
-local function mirror_pollution_emissions(emissions)
-  if emissions and emissions.pollution and emissions["ren-data"] == nil then
-    emissions["ren-data"] = emissions.pollution
-  end
-end
-
-local function patch_entity(entity)
-  if not entity then
+local function convert_pollution_emissions(emissions)
+  if not emissions or not emissions.pollution then
     return
   end
-  mirror_pollution_emissions(entity.emissions_per_minute)
+  if emissions["ren-data"] == nil then
+    emissions["ren-data"] = emissions.pollution
+  end
+  emissions.pollution = nil
+end
+
+local function patch_entity(name, entity)
+  if not entity or (name and name:sub(1, 4) == "ren-") then
+    return
+  end
+  convert_pollution_emissions(entity.emissions_per_minute)
   if entity.energy_source then
-    mirror_pollution_emissions(entity.energy_source.emissions_per_minute)
+    convert_pollution_emissions(entity.energy_source.emissions_per_minute)
   end
   if entity.burner then
-    mirror_pollution_emissions(entity.burner.emissions)
+    convert_pollution_emissions(entity.burner.emissions)
   end
 end
 
 for _, prototypes in pairs(data.raw) do
   if type(prototypes) == "table" then
-    for _, prototype in pairs(prototypes) do
+    for name, prototype in pairs(prototypes) do
       if type(prototype) == "table" then
-        patch_entity(prototype)
+        patch_entity(name, prototype)
       end
     end
   end

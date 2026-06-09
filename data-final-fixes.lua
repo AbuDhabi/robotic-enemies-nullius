@@ -1,4 +1,5 @@
 require("prototypes.emissions-patch")
+require("prototypes.electronic-pollution").apply()
 require("prototypes.ammo-balance").apply()
 
 local combat_targeting = require("prototypes.combat-targeting")
