@@ -1,10 +1,10 @@
 {
   "name": "robotic-enemies-nullius",
   "version": "0.2.25",
-  "title": "Nullius Enemies",
+  "title": "Nullius: Hostile Incursion",
   "author": "AbuDhabi",
   "factorio_version": "2.0",
   "dependencies": ["base >= 2.0", "nullius >= 2.0.0"],
-  "description": "Robotic enemy bases on Nauvis for Nullius, adapted from Castra Prime. Restores combat tools via the Nullius tech tree.",
+  "description": "A hostile von Neumann civilization reached Nauvis before your terraforming mission. Subsurface installations watch for technological signatures and dispatch surface outposts against intruders. Adds incursions and Nullius countermeasure tech.",
   "homepage": "https://github.com/AbuDhabi/robotic-enemies-nullius"
 }
