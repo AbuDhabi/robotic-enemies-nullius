@@ -95,4 +95,29 @@ data:extend({
     },
     ignore_tech_cost_multiplier = true,
   },
+  {
+    type = "technology",
+    name = "nullius-automated-defense-2",
+    localised_name = { "technology-name.nullius-automated-defense-2" },
+    localised_description = { "technology-description.nullius-automated-defense-2" },
+    order = "nullius-ci",
+    icon = "__base__/graphics/icons/flamethrower-turret.png",
+    icon_size = 64,
+    prerequisites = { "nullius-automated-defense-1", "nullius-organic-chemistry-2" },
+    effects = {
+      { type = "unlock-recipe", recipe = "nullius-flamethrower-turret" },
+    },
+    unit = {
+      count = 75,
+      ingredients = {
+        { "nullius-geology-pack", 1 },
+        { "nullius-climatology-pack", 1 },
+        { "nullius-mechanical-pack", 1 },
+        { "nullius-electrical-pack", 1 },
+        { "nullius-chemical-pack", 1 },
+      },
+      time = 25,
+    },
+    ignore_tech_cost_multiplier = true,
+  },
 })
