@@ -18,6 +18,20 @@ local function add_prerequisite(tech_name, prerequisite)
   end
 end
 
+local function add_unlock_recipe(tech_name, recipe_name)
+  local tech = data.raw.technology[tech_name]
+  if not tech then
+    return
+  end
+  for _, effect in ipairs(tech.effects or {}) do
+    if effect.type == "unlock-recipe" and effect.recipe == recipe_name then
+      return
+    end
+  end
+  tech.effects = tech.effects or {}
+  table.insert(tech.effects, { type = "unlock-recipe", recipe = recipe_name })
+end
+
 local function remove_unlock_recipe(tech_name, recipe_name)
   local tech = data.raw.technology[tech_name]
   if not tech or not tech.effects then
@@ -33,3 +47,4 @@ end
 
 remove_unlock_recipe("nullius-demolitions-1", "nullius-gun")
 add_prerequisite("nullius-demolitions-1", "nullius-self-defense-2")
+add_unlock_recipe("nullius-masonry-2", "nullius-stone-wall")
