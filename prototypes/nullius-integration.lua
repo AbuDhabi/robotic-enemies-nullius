@@ -48,3 +48,20 @@ end
 remove_unlock_recipe("nullius-demolitions-1", "nullius-gun")
 add_prerequisite("nullius-demolitions-1", "nullius-self-defense-2")
 add_unlock_recipe("nullius-masonry-2", "nullius-stone-wall")
+
+local function remove_bullet_effects(tech_name)
+  local tech = data.raw.technology[tech_name]
+  if not tech or not tech.effects then
+    return
+  end
+  for index = #tech.effects, 1, -1 do
+    local effect = tech.effects[index]
+    if effect.ammo_category == "bullet"
+      and (effect.type == "gun-speed" or effect.type == "ammo-damage")
+    then
+      table.remove(tech.effects, index)
+    end
+  end
+end
+
+remove_bullet_effects("nullius-extermination-1")
