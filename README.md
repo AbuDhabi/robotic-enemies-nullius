@@ -34,7 +34,7 @@ Version **0.2.25** is the first public release. Balance, spawning, and edge case
 
 Mechanics and atmosphere are adapted from the Castra family of mods:
 
-- **[Planet Castra](https://mods.factorio.com/mod/planet-castra)** — original concept by Bartz24 and LogicDolphin
+- **[Planet Castra](https://mods.factorio.com/mod/castra)** — original concept by Bartz24 and LogicDolphin
 - **[Castra Prime](https://github.com/pauldennis2/castra-prime)** — fork maintained by erronius and pauldennis2; primary source for enemy-base logic ported here
 
 [Nullius](https://github.com/GregorSamsanite/nullius) provides the progression and setting this mod is built to fit.
