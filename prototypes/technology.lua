@@ -103,9 +103,9 @@ data:extend({
     order = "nullius-ci",
     icon = "__base__/graphics/icons/flamethrower-turret.png",
     icon_size = 64,
-    prerequisites = { "nullius-automated-defense-1", "nullius-organic-chemistry-2" },
+    prerequisites = { "nullius-automated-defense-1", "nullius-organic-chemistry-2", "nullius-sulfur-processing-1" },
     effects = {
-      { type = "unlock-recipe", recipe = "nullius-flamethrower-turret" },
+      { type = "unlock-recipe", recipe = "nullius-acid-turret" },
     },
     unit = {
       count = 75,
