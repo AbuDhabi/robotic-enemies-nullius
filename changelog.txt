@@ -1,142 +1,44 @@
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.25
-Date: 2026-06-06
-  - Add Self Defense 1 (+100% hand-to-hand damage vs enemies) and Self Defense 2 (hand-craftable grenades).
+Date: 2026-06-10
+  Initial release. Hostile robotic outposts on Nauvis for Nullius, adapted from Castra Prime (GPL-3.0).
 
----------------------------------------------------------------------------------------------------
-Version: 0.2.24
-Date: 2026-06-06
-  - Battle spidertrons fire rockets twice as fast (60-tick cooldown).
+  Enemy bases:
+  - Surface monitoring nodes (ren-data-collector) spawn in walled compounds with laser and flamethrower turrets, power infrastructure, land mines, and mobile units.
+  - Bases do not generate within 600 tiles of map origin.
+  - Destroyed monitoring nodes erupt with a nuclear-reactor-scale explosion and leave a large scorch mark.
+  - Perimeter walls use a wider offset and a centered vehicle gate on each face.
 
----------------------------------------------------------------------------------------------------
-Version: 0.2.23
-Date: 2026-06-06
-  - Battle tanks fire vanilla cannon shells (turret animation, projectile, 100 explosion + piercing physical damage).
+  Pollution and detection:
+  - Re-enables Nullius pollution on Nauvis using the ren-data pollutant ("technological signature").
+  - Factory machines emit ren-data only when their recipes recursively require electronics; plain power draw does not count.
+  - Enemy entities never emit pollution or ren-data.
+  - Mobile units stay near their outpost until ren-data pollution triggers an attack.
 
----------------------------------------------------------------------------------------------------
-Version: 0.2.22
-Date: 2026-06-06
-  - Double kamikaze drone movement speed.
+  Hostile forces (unlock with Nauvis evolution):
+  - Scout android: engineer appearance, light-armor stats, melee attacks (0%).
+  - Raider buggy: vanilla car, bullet attacks (10%).
+  - Assault tank: vanilla tank cannon shells with turret animation (35%).
+  - Harrier kamikaze: fast Defender-style suicide unit with explosive blast (50%).
+  - Walker spidertron: vanilla spider legs and rocket attacks (65%).
 
----------------------------------------------------------------------------------------------------
-Version: 0.2.21
-Date: 2026-06-06
-  - Add Kamikaze drone: flying Defender-style suicide unit with explosive rocket blast (unlocks after tanks, before spidertrons).
+  Combat scaling and balance:
+  - Hostile attack damage scales with Nauvis evolution from 1× at zero to 4× at full evolution (+300%).
+  - Monitoring nodes heal slowly; mobile units do not regenerate health.
+  - Nullius magazines, missiles, and demolition gear realigned to vanilla combat values.
+  - Five-tier Projectile improvements research chain for bullet damage and firing speed.
+  - Startup setting ren-enable-auto-targeting (default on): Nullius guns and missiles acquire hostile units instead of ground-only demolition behavior.
 
----------------------------------------------------------------------------------------------------
-Version: 0.2.20
-Date: 2026-06-06
-  - Destroyed data collectors now erupt with the nuclear reactor explosion and leave a big scorch mark.
+  Player countermeasures (Nullius tech integration):
+  - Personal countermeasures: grenades, compact firearm, improvised magazine recipe.
+  - Automated countermeasures: electric gun turret and benzene flamethrower turret.
+  - Anti-incursion systems: rifle, laser turret, and advanced magazine unlock.
+  - Stone wall (half HP of reinforced walls) unlocked from Nullius masonry.
 
----------------------------------------------------------------------------------------------------
-Version: 0.2.19
-Date: 2026-06-06
-  - Triple the enemy-free starting area (no bases within 600 tiles of spawn).
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.18
-Date: 2026-06-06
-  - Mobile enemies no longer roam the map; they stay near their base until ren-data pollution triggers an attack.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.17
-Date: 2026-06-06
-  - Android death explosion switched to vanilla inserter explosion effect.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.16
-Date: 2026-06-06
-  - Android death now uses the medium electric pole explosion (visible flash, smoke, debris).
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.15
-Date: 2026-06-06
-  - Fix invisible android death pop: spawn a separate burst explosion with sound via created_effect.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.14
-Date: 2026-06-06
-  - Androids no longer leave character corpses; they pop with a small harmless explosion and a scorch mark.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.13
-Date: 2026-06-06
-  - Add ren-enemy-android: engineer appearance, light-armor stats, melee attacks; spawns before buggies at zero evolution.
-  - Buggies now unlock at 10% evolution; melee ammo category included in evolution damage scaling.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.12
-Date: 2026-06-06
-  - Fix evolution damage scaling: sync enemy force ammo modifiers (bullet/rocket/laser/flamethrower) from current Nauvis evolution.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.11
-Date: 2026-06-06
-  - Mobile units and enemy turrets scale attack damage with Nauvis evolution (1x to 10x, matching spawner health).
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.10
-Date: 2026-06-05
-  - Magazine 1 matches piercing rounds (8 damage); Magazine 2 matches uranium rounds (24 damage).
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.9
-Date: 2026-06-05
-  - Rebalance Nullius magazines to vanilla bullet damage; Missile 1 uses vanilla explosive rockets.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.8
-Date: 2026-06-05
-  - Startup setting ren-enable-auto-targeting (default on): Nullius magazines/missiles target entities for combat.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.7
-Date: 2026-06-05
-  - Enemy base walls: wider perimeter offset and a centered vehicle gate on each wall face.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.6
-Date: 2026-06-05
-  - Enemy spidertrons use spider-unit with vanilla spider_engine legs instead of a torso-only unit sprite.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.5
-Date: 2026-06-05
-  - Remove collector drone units; spawner now deploys buggies, battle tanks, and spidertrons.
-  - Buggies use the vanilla car; spidertrons use vanilla spidertron stats and graphics.
-  - Evolution gates: buggies first, tanks mid, spidertrons last. Higher ren-data cost to spawn tougher units.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.4
-Date: 2026-06-05
-  - Re-enable Nullius pollution; Nauvis uses ren-data pollutant for factory emissions and enemy attacks.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.3
-Date: 2026-06-05
-  - Enemy bases use ren-land-mine: 50% movement speed for 3s instead of full stun.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.2
-Date: 2026-06-05
-  - Add English locale strings for all ren- enemy entities.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.1
-Date: 2026-06-04
-  - Bundle fusion-reactor graphics in-mod; no castra-prime-assets dependency.
-  - Fix ren-data-collector using incorrect biter spawner sprites.
-
----------------------------------------------------------------------------------------------------
-Version: 0.2.0
-Date: 2026-06-04
-  - Robotic enemy bases on Nauvis (Castra Prime mechanics, GPL-3.0).
-
----------------------------------------------------------------------------------------------------
-Version: 0.1.0
-Date: 2026-06-04
-  - Initial mod scaffold.
-  - GPLv3; mechanics adapted from Castra Prime (fork of Planet Castra by Bartz24 and LogicDolphin, maintained by erronius/pauldennis2).
+  Other:
+  - Startup setting ren-enable-robotic-enemies to disable base generation.
+  - English locale for all hostile entities and countermeasure items.
+  - Fusion-reactor graphics bundled in-mod (no castra-prime-assets dependency).
 
 Attribution and references:
   - Castra Prime https://github.com/pauldennis2/castra-prime (GPL-3.0)
