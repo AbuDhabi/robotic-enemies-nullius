@@ -8,7 +8,7 @@ Outposts include laser and flamethrower turrets, land mines, power infrastructur
 
 Factory machines emit `ren-data` only when their recipes recursively require electronics; plain power draw does not count. Enemy entities never emit pollution or signatures.
 
-On the player side, Nullius demolition gear is realigned to vanilla combat values, a five-tier **Projectile improvements** research chain boosts bullet weapons, and new countermeasure tech unlocks grenades, firearms, gun and flamethrower turrets, laser turrets, and an early stone wall.
+On the player side, Nullius demolition gear is realigned to vanilla combat values, a five-tier **Projectile improvements** research chain boosts bullet weapons, and new countermeasure tech unlocks grenades, firearms, gun and acidthrower turrets, laser turrets, and an early stone wall.
 
 **Homepage:** https://github.com/AbuDhabi/robotic-enemies-nullius
 

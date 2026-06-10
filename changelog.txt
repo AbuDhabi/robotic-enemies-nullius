@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.26
+Date: 2026-06-10
+  - Replace Automated countermeasures 2 benzene flamethrower with an acidthrower turret (nullius-acid-turret) fed by sulfuric acid.
+  - Acidthrower leaves slowing acid puddles and applies acid stickers like biter splashes; stream uses acid-projectile graphics tinted to match the puddles.
+  - Automated countermeasures 2 now also requires Sulfur processing 1 (nullius-sulfur-processing-1).
+  - Add mod thumbnail; update README for first release and fix Planet Castra mod portal link.
+
+---------------------------------------------------------------------------------------------------
 Version: 0.2.25
 Date: 2026-06-10
   Initial release. Hostile robotic outposts on Nauvis for Nullius, adapted from Castra Prime (GPL-3.0).
