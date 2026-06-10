@@ -1,4 +1,4 @@
--- Scale ren-enemy combat damage with Nauvis evolution (1x at 0, 10x at 1).
+-- Scale ren-enemy combat damage with Nauvis evolution (1x at 0, 4x at 1).
 -- Uses the enemy force ammo damage modifier so turrets and units pick it up in combat and tooltips.
 
 local ren = require("scripts.constants")

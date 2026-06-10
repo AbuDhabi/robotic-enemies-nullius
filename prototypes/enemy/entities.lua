@@ -59,7 +59,7 @@ local function create_spider_enemy_unit(options)
     factoriopedia_simulation = nil,
     impact_category = "metal",
     resistances = table.deepcopy(options.resistances or vehicle.resistances),
-    healing_per_tick = 0.01,
+    healing_per_tick = 0,
     collision_box = vehicle.collision_box,
     sticker_box = vehicle.sticker_box,
     selection_box = vehicle.selection_box,
@@ -289,7 +289,7 @@ local function create_android_enemy_unit(options)
   unit.icon = options.icon
   unit.flags = { "placeable-player", "placeable-enemy", "placeable-off-grid", "breaths-air", "not-repairable" }
   unit.max_health = character.max_health
-  unit.healing_per_tick = character.healing_per_tick
+  unit.healing_per_tick = 0
   unit.factoriopedia_simulation = nil
   unit.resistances = light_armor and table.deepcopy(light_armor.resistances) or {}
   unit.absorptions_to_join_attack = { [options.pollutant or "ren-data"] = options.absorption_cost }
@@ -342,6 +342,7 @@ local function create_vehicle_enemy_unit(options)
   unit.name = options.name
   unit.icon = options.icon
   unit.max_health = vehicle.max_health
+  unit.healing_per_tick = 0
   unit.factoriopedia_simulation = nil
   unit.resistances = options.resistances or vehicle.resistances or {}
   unit.absorptions_to_join_attack = { [options.pollutant or "ren-data"] = options.absorption_cost }

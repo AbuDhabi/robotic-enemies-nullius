@@ -21,8 +21,8 @@ M.EVOLUTION_UNLOCK = {
   [M.SPIDER] = 0.65,
 }
 
--- Matches vanilla enemy spawner health scaling: 1x at evolution 0, 10x at evolution 1.
-M.EVOLUTION_DAMAGE_FACTOR = 9
+-- Enemy damage scales 1x at evolution 0, 4x at evolution 1 (+300%).
+M.EVOLUTION_DAMAGE_FACTOR = 3
 
 function M.evolution_combat_multiplier(evolution)
   return 1 + M.EVOLUTION_DAMAGE_FACTOR * evolution
